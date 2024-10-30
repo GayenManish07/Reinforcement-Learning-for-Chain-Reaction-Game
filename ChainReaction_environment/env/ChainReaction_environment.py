@@ -14,13 +14,13 @@ class ChainReactionEnvironment(AECEnv):
     """
 
     metadata = {
-        "render_modes": ["human", "ansi", "rgb_array"],
+        "render_modes": ["human", "ansi", "rgb_array",None],
         "name": "ChainReaction_v0",
         "is_parallelizable": False,
         "render_fps": 2,
     }
 
-    def __init__(self, render_mode: str = "human", screen_height: int = 800):
+    def __init__(self, render_mode: str = None, screen_height: int = 800):
         super().__init__()
 
 
@@ -106,7 +106,7 @@ class ChainReactionEnvironment(AECEnv):
         return {"observation": observation, "action_mask": action_mask}
     
 
-    def reset(self, seed=None, options=None):
+    def reset(self, seed=None,):
         self.agents = self.possible_agents[:]
 
         self.board = np.zeros(shape=(16,16,8))
