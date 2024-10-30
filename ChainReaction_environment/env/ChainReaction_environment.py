@@ -93,11 +93,7 @@ class ChainReactionEnvironment(AECEnv):
 
         observation = np.dstack(self.board,self.board_history)
 
-        if current_index in [0,2]:
-            legal_moves = np.where(np.flatten(observation[:,:,1])==0)
-        if current_index in [1,3]:
-            legal_moves =  np.where(np.flatten(observation[:,:,0])==0)
-
+        legal_moves = np.where(np.flatten(observation[:,:,(current_index+1)%2])==0) #board positions with no opponent particle(s)
 
         action_mask = np.zeros(16*16, "int8")
         for i in legal_moves:
