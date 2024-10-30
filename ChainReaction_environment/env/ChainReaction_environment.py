@@ -110,7 +110,7 @@ class ChainReactionEnvironment(AECEnv):
         self.agents = self.possible_agents[:]
 
         self.board = np.zeros(shape=(16,16,8))
-
+        self.num_steps = 0
         self._agent_selector = agent_selector(self.agents)
         self.agent_selection = self._agent_selector.reset()
 
@@ -120,47 +120,61 @@ class ChainReactionEnvironment(AECEnv):
         self.truncations = {name: False for name in self.agents}
         self.infos = {name: {} for name in self.agents}
 
-        self.board_history = np.zeros((16, 16, 32), dtype=bool)
+        self.board_history = np.zeros(shape=(16, 16, 32), dtype=bool)
 
         if self.render_mode == "human":
             self.render()
 
 
-    def step(self, action):# unfinished
-        '''
+    def step(self, action):# unfinished rewards and burst function
+        
         if (
             self.terminations[self.agent_selection]
             or self.truncations[self.agent_selection]
         ):
             return self._was_dead_step(action)
-        self._go = self._go.play_move(coords.from_flat(action))
-        self._last_obs = self.observe(self.agent_selection)
-        current_agent_plane, opponent_agent_plane = self._encode_board_planes(
-            self.agent_selection
-        )
-        self.board_history = np.dstack(
-            (current_agent_plane, opponent_agent_plane, self.board_history[:, :, :-2])
-        )
+        
+        current_agent = self.agent_selection
+        current_index = self.agents.index(current_agent)
 
-        if self._go.is_game_over():
-            self.terminations = self._convert_to_dict(
-                [True for _ in range(self.num_agents)]
-            )
-            self.rewards = self._convert_to_dict(
-                self._encode_rewards(self._go.result())
-            )
-            self.next_legal_moves = [self._N * self._N]
-        else:
-            self.next_legal_moves = self._encode_legal_actions(
-                self._go.all_legal_moves()
-            )
-        '''
-        next_player = self._agent_selector.next()
-        self.agent_selection = (
-            next_player if next_player else self._agent_selector.next()
-        )
+        #convert action to coordinate on board (a//N, a%N)
+        x_coord = action // 16
+        y_coord = action % 16
+
+        if self.board[x_coord, y_coord, (current_index+1)%2] == 1:
+            invalid = True
+        elif self.board[x_coord, y_coord, (current_index)%2] == 0:
+            self.board[x_coord, y_coord, (current_index)%2] = 1
+            self.board[x_coord, y_coord, (current_index%2)*3 + 2] = 1
+        elif self.board[x_coord, y_coord, (current_index+2)*3 + 2] == 1:
+            self.board[x_coord, y_coord, (current_index+2)*3 + 2] = 0
+            self.board[x_coord, y_coord, (current_index+2)*3 + 3] = 1
+        elif self.board[x_coord, y_coord, (current_index+2)*3 + 3] == 1:
+            self.board[x_coord, y_coord, (current_index+2)*3 + 3] = 0
+            self.board[x_coord, y_coord, (current_index+2)*3 + 4] = 1
+        elif self.board[x_coord, y_coord, (current_index+2)*3 + 4] == 1:
+            self.board[x_coord, y_coord, (current_index+2)*3 + 4] = 0
+            self.board[x_coord, y_coord, (current_index)%2] = 0
+            # burst condition reached here
+
+
+
+
+        next_board = self.observe(self.agent_selection)['observation']
+        self.board_history = np.dstack(next_board, self.board_history[:, :, :32])
+
+        if self.num_steps>2:
+            if np.all(next_board[:,:,(current_index+1)%2] == np.zeros(shape=(16*16))):
+                game_over = True
+
+        if game_over:
+            self.terminations = {name: True for name in self.agents}
+            self.rewards = None
+        
+        self.agent_selection = self._agent_selector.next()
         self._accumulate_rewards()
 
+        self.num_steps += 1
         if self.render_mode == "human":
             self.render()
 
