@@ -24,7 +24,7 @@ class ChainReactionEnvironment(AECEnv):
         super().__init__()
 
 
-        self.agents = ["team_a","team_b"]
+        self.agents = ["p1_team_a","p2_team_b","p3_team_a","p4_team_b"]
         self.possible_agents = self.agents[:]
         self._agent_selector = agent_selector(self.agents)
         self.agent_selection = None
@@ -33,6 +33,7 @@ class ChainReactionEnvironment(AECEnv):
         self.infos = {name: {} for name in self.agents}
         self.truncations = {name: False for name in self.agents}
         self.terminations = {name: False for name in self.agents}
+        self.board = np.zeros((16, 16, 8), dtype=bool)
         self.board_history = np.zeros((16, 16, 32), dtype=bool)# set board history
 
         assert render_mode is None or render_mode in self.metadata["render_modes"]
@@ -67,7 +68,7 @@ class ChainReactionEnvironment(AECEnv):
             name: spaces.Dict(
                 {
                     "observation": spaces.Box(
-                        low=0, high=1, shape=(16, 16, 7), dtype=bool #set observation space
+                        low=0, high=1, shape=(16, 16, 40), dtype=bool
                     ),
                     "action_mask": spaces.Box(
                         low=0, high=1, shape=(16*16,), dtype=np.int8
@@ -82,19 +83,21 @@ class ChainReactionEnvironment(AECEnv):
 
     def action_space(self, agent):
 
-        self.action_spaces = {name: spaces.Discrete(16 * 16 * 7) for name in self.agents} #set action space
+        self.action_spaces = {name: spaces.Discrete(16 * 16) for name in self.agents}
 
         return self.action_spaces[agent]
     
 
-    def observe(self, agent):# unfinished
+    def observe(self, agent):
         current_index = self.possible_agents.index(agent)
 
-        observation = None 
+        observation = np.dstack(self.board,self.board_history)
 
-        legal_moves = (
-            
-        )
+        if current_index in [0,2]:
+            legal_moves = np.where(np.flatten(observation[:,:,1])==0)
+        if current_index in [1,3]:
+            legal_moves =  np.where(np.flatten(observation[:,:,0])==0)
+
 
         action_mask = np.zeros(16*16, "int8")
         for i in legal_moves:
@@ -106,7 +109,7 @@ class ChainReactionEnvironment(AECEnv):
     def reset(self, seed=None, options=None):
         self.agents = self.possible_agents[:]
 
-       # self.board = chess.Board()
+        self.board = np.zeros(shape=(16,16,8))
 
         self._agent_selector = agent_selector(self.agents)
         self.agent_selection = self._agent_selector.reset()
