@@ -141,11 +141,11 @@ class ChainReactionEnvironment(AECEnv):
         x_coord = action // 16
         y_coord = action % 16
 
-        if self.board[x_coord, y_coord, (current_index+1)%2] == 1:
+        if self.board[x_coord, y_coord, (current_index+1)%2] == 1:          #check if opponent team has a particle in the position chosen by action 
             invalid = True
-        elif self.board[x_coord, y_coord, (current_index)%2] == 0:
-            self.board[x_coord, y_coord, (current_index)%2] = 1
-            self.board[x_coord, y_coord, (current_index%2)*3 + 2] = 1
+        elif self.board[x_coord, y_coord, (current_index)%2] == 0:          #check if friendly team has a particle in the position chosen by action
+            self.board[x_coord, y_coord, (current_index)%2] = 1             #add particle if no particle is present 
+            self.board[x_coord, y_coord, (current_index%2)*3 + 2] = 1       #change board state to track particle updates(0->1,1->2,2->3 or 3->0 with burst)
         elif self.board[x_coord, y_coord, (current_index+2)*3 + 2] == 1:
             self.board[x_coord, y_coord, (current_index+2)*3 + 2] = 0
             self.board[x_coord, y_coord, (current_index+2)*3 + 3] = 1
@@ -161,15 +161,27 @@ class ChainReactionEnvironment(AECEnv):
 
 
         next_board = self.observe(self.agent_selection)['observation']
-        self.board_history = np.dstack(next_board, self.board_history[:, :, :32])
+        self.board_history = np.dstack(next_board, self.board_history[:, :, :32])       #update board history
 
         if self.num_steps>2:
-            if np.all(next_board[:,:,(current_index+1)%2] == np.zeros(shape=(16*16))):
+            if np.all(next_board[:,:,(current_index+1)%2] == np.zeros(shape=(16*16))):  #game over when opponent has no particles on board
                 game_over = True
 
         if game_over:
             self.terminations = {name: True for name in self.agents}
-            self.rewards = None
+            win_reward = 1
+            lose_reward = -1
+            if current_agent == 'p1_team_a' or 'p3_team_a':
+                self.rewards['p1_team_a'] = win_reward
+                self.rewards['p3_team_a'] = win_reward
+                self.rewards['p2_team_b'] = lose_reward
+                self.rewards['p4_team_b'] = lose_reward
+            else:
+                self.rewards['p1_team_a'] = lose_reward
+                self.rewards['p3_team_a'] = lose_reward
+                self.rewards['p2_team_b'] = win_reward
+                self.rewards['p4_team_b'] = win_reward     
+
         
         self.agent_selection = self._agent_selector.next()
         self._accumulate_rewards()
