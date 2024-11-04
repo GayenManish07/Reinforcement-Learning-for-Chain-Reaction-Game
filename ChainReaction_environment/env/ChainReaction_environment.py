@@ -138,7 +138,7 @@ class ChainReactionEnvironment(AECEnv):
         y_coord = action % 16
 
         if self.board[x_coord, y_coord, (current_index+1)%2] == 1:          #check if opponent team has a particle in the position chosen by action 
-            invalid = True
+            game_over = True
         elif self.board[x_coord, y_coord, (current_index)%2] == 0:          #check if friendly team has a particle in the position chosen by action
             self.board[x_coord, y_coord, (current_index)%2] = 1             #add particle if no particle is present 
             self.board[x_coord, y_coord, (current_index%2)*3 + 2] = 1       #change board state to track particle updates(0->1,1->2,2->3 or 3->0 with burst)
