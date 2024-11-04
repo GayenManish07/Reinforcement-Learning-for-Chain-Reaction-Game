@@ -91,9 +91,9 @@ class ChainReactionEnvironment(AECEnv):
     def observe(self, agent):
         current_index = self.possible_agents.index(agent)
 
-        observation = np.dstack(self.board,self.board_history)
+        observation = np.dstack((self.board,self.board_history))
 
-        legal_moves = np.where(np.flatten(observation[:,:,(current_index+1)%2])==0) #board positions with no opponent particle(s)
+        legal_moves = np.where(observation[:,:,(current_index+1)%2].flatten()==0) #board positions with no opponent particle(s)
 
         action_mask = np.zeros(16*16, "int8")
         for i in legal_moves:
@@ -132,13 +132,14 @@ class ChainReactionEnvironment(AECEnv):
         
         current_agent = self.agent_selection
         current_index = self.agents.index(current_agent)
-
+        game_over = False
         #convert action to coordinate on board (a//N, a%N)
         x_coord = action // 16
         y_coord = action % 16
 
         if self.board[x_coord, y_coord, (current_index+1)%2] == 1:          #check if opponent team has a particle in the position chosen by action 
             game_over = True
+            print(f"Illegal Action Taken: Opponent's Tile Selected , Action {action}, Terminating game")
         elif self.board[x_coord, y_coord, (current_index)%2] == 0:          #check if friendly team has a particle in the position chosen by action
             self.board[x_coord, y_coord, (current_index)%2] = 1             #add particle if no particle is present 
             self.board[x_coord, y_coord, (current_index%2)*3 + 2] = 1       #change board state to track particle updates(0->1,1->2,2->3 or 3->0 with burst)
@@ -157,7 +158,7 @@ class ChainReactionEnvironment(AECEnv):
 
 
         next_board = self.observe(self.agent_selection)['observation']
-        self.board_history = np.dstack(next_board, self.board_history[:, :, :32])       #update board history
+        self.board_history = np.dstack((next_board, self.board_history[:, :, :32]))       #update board history
 
         if self.num_steps>2:
             if np.all(next_board[:,:,(current_index+1)%2] == np.zeros(shape=(16*16))):  #game over when opponent has no particles on board
