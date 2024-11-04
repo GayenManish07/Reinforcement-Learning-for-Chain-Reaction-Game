@@ -143,17 +143,20 @@ class ChainReactionEnvironment(AECEnv):
         elif self.board[x_coord, y_coord, (current_index)%2] == 0:          #check if friendly team has a particle in the position chosen by action
             self.board[x_coord, y_coord, (current_index)%2] = 1             #add particle if no particle is present 
             self.board[x_coord, y_coord, (current_index%2)*3 + 2] = 1       #change board state to track particle updates(0->1,1->2,2->3 or 3->0 with burst)
+            print(f"{current_agent} Put 1 down on the board")
         elif self.board[x_coord, y_coord, (current_index%2)*3 + 2] == 1:
             self.board[x_coord, y_coord, (current_index%2)*3 + 2] = 0
             self.board[x_coord, y_coord, (current_index%2)*3 + 3] = 1
+            print(f"{current_agent} Stacked it to 2")
         elif self.board[x_coord, y_coord, (current_index%2)*3 + 3] == 1:
             self.board[x_coord, y_coord, (current_index%2)*3 + 3] = 0
             self.board[x_coord, y_coord, (current_index%2)*3 + 4] = 1
+            print(f"{current_agent} Stacked it to 3")
         elif self.board[x_coord, y_coord, (current_index%2)*3 + 4] == 1:
             self.board[x_coord, y_coord, (current_index%2)*3 + 4] = 0
             self.board[x_coord, y_coord, (current_index)%2] = 0
             self.burst(x_coord, y_coord)
-
+            print(f"Explooossionnnn!! caused by {current_agent}")
 
 
 
@@ -163,6 +166,7 @@ class ChainReactionEnvironment(AECEnv):
         if self.num_steps>2:
             if np.all(next_board[:,:,(current_index+1)%2] == np.zeros(shape=(16*16))):  #game over when opponent has no particles on board
                 game_over = True
+                print("f{current_agent} made the winning play! Game Over!!")
 
         if game_over:
             self.terminations = {name: True for name in self.agents}

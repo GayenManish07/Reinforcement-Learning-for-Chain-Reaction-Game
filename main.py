@@ -10,7 +10,7 @@ for agent in env.agent_iter(max_iter=100): #pygame auto close in 10 secs
         action = None
     else:
         action = env.action_space(agent).sample()
-    print(f'Random Action: {action} by agent: {agent}')
+    print(f'Action: {action} by agent: {agent}')
     env.step(action)
 
 env.close()
