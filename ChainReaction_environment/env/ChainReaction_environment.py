@@ -1,4 +1,3 @@
-from copy import copy
 from os import path
 import numpy as np
 import gymnasium
@@ -65,7 +64,6 @@ class ChainReactionEnvironment(AECEnv):
                 "team_b_3": load_piece("team_b_3"),
             }
 
-
     def observation_space(self, agent):
 
         self.observation_spaces = {
@@ -81,17 +79,14 @@ class ChainReactionEnvironment(AECEnv):
             )
             for name in self.agents
         }
-
         return self.observation_spaces[agent]
     
-
     def action_space(self, agent):
 
         self.action_spaces = {name: spaces.Discrete(16 * 16) for name in self.agents}
 
         return self.action_spaces[agent]
     
-
     def observe(self, agent):
         current_index = self.possible_agents.index(agent)
 
@@ -105,7 +100,6 @@ class ChainReactionEnvironment(AECEnv):
 
         return {"observation": observation, "action_mask": action_mask}
     
-
     def reset(self, seed=None,):
         self.agents = self.possible_agents[:]
 
@@ -129,8 +123,7 @@ class ChainReactionEnvironment(AECEnv):
         if self.render_mode == "human":
             self.render()
 
-
-    def step(self, action):# unfinished rewards and burst function
+    def step(self, action):
         
         if (
             self.terminations[self.agent_selection]
@@ -167,7 +160,6 @@ class ChainReactionEnvironment(AECEnv):
             self.burst(x_coord, y_coord)
             print(f"Explooossionnnn!! caused by {current_agent}")
 
-
         self.board_history = np.dstack((self.board, self.board_history[:, :, :32]))       #update board history
 
         if self.num_steps>2:
@@ -188,8 +180,8 @@ class ChainReactionEnvironment(AECEnv):
                 self.rewards['p1_team_a'] = lose_reward
                 self.rewards['p3_team_a'] = lose_reward
                 self.rewards['p2_team_b'] = win_reward
-                self.rewards['p4_team_b'] = win_reward     
-
+                self.rewards['p4_team_b'] = win_reward    
+         
         self.counter1 = 0
         self.counter2 = 0
         self.counter3 = 0
@@ -202,7 +194,7 @@ class ChainReactionEnvironment(AECEnv):
         if self.render_mode == "human":
             self.render()
 
-    def burst(self, x_coordinate, y_coordinate):                          #checks if neighbouring tile in board and executes reaction burst updates on the board
+    def burst(self, x_coordinate, y_coordinate):            #checks if neighbouring tile in board and executes reaction burst updates on the board
         current_agent = self.agent_selection
         current_index = self.agents.index(current_agent)
         if self.counter1<5:
@@ -213,35 +205,29 @@ class ChainReactionEnvironment(AECEnv):
                 if (self.board[x_current, y_current, (current_index)%2] == 0) & (self.board[x_current, y_current, (current_index+1)%2] == 0):          
                     self.board[x_current, y_current, (current_index)%2] = 1
                     self.cleaner(x_current,y_current)             
-                    self.board[x_current, y_current, (current_index%2)*3 + 2] = 1    
-
+                    self.board[x_current, y_current, (current_index%2)*3 + 2] = 1   
+                     
                 if self.board[x_current, y_current, (current_index)%2] == 1:
                     if self.board[x_current, y_current, (current_index%2)*3 + 2] == 1:
                         self.cleaner(x_current,y_current)
                         self.board[x_current, y_current, (current_index%2)*3 + 3] = 1
-
                     elif self.board[x_current, y_current, (current_index%2)*3 + 3] == 1:
                         self.cleaner(x_current,y_current)
                         self.board[x_current, y_current, (current_index%2)*3 + 4] = 1
-
                     elif self.board[x_current, y_current, (current_index%2)*3 + 4] == 1:
                         self.cleaner(x_current,y_current)
                         self.board[x_current, y_current, (current_index)%2] = 0
                         self.burst(x_current, y_current)
-            
 
                 if self.board[x_current, y_current, (current_index+1)%2] == 1:
                     self.board[x_current, y_current, (current_index+1)%2] = 0
                     self.board[x_current, y_current, (current_index)%2] = 1
-
                     if self.board[x_current, y_current, ((current_index+1)%2)*3 + 2] == 1:
                         self.cleaner(x_current,y_current)
                         self.board[x_current, y_current, (current_index%2)*3 + 3] = 1
-
                     elif self.board[x_current, y_current, ((current_index+1)%2)*3 + 3] == 1:
                         self.cleaner(x_current,y_current)
                         self.board[x_current, y_current, (current_index%2)*3 + 4] = 1
-
                     elif self.board[x_current, y_current, ((current_index+1)%2)*3 + 4] == 1:
                         self.cleaner(x_current,y_current)
                         self.board[x_current, y_current, (current_index)%2] = 0
@@ -254,17 +240,15 @@ class ChainReactionEnvironment(AECEnv):
                 if (self.board[x_current, y_current, (current_index)%2] == 0) & (self.board[x_current, y_current, (current_index+1)%2] == 0):          
                     self.board[x_current, y_current, (current_index)%2] = 1
                     self.cleaner(x_current,y_current)             
-                    self.board[x_current, y_current, (current_index%2)*3 + 2] = 1    
+                    self.board[x_current, y_current, (current_index%2)*3 + 2] = 1  
 
                 if self.board[x_current, y_current, (current_index)%2] == 1:
                     if self.board[x_current, y_current, (current_index%2)*3 + 2] == 1:
                         self.cleaner(x_current,y_current)
                         self.board[x_current, y_current, (current_index%2)*3 + 3] = 1
-
                     elif self.board[x_current, y_current, (current_index%2)*3 + 3] == 1:
                         self.cleaner(x_current,y_current)
                         self.board[x_current, y_current, (current_index%2)*3 + 4] = 1
-
                     elif self.board[x_current, y_current, (current_index%2)*3 + 4] == 1:
                         self.cleaner(x_current,y_current)
                         self.board[x_current, y_current, (current_index)%2] = 0
@@ -273,20 +257,16 @@ class ChainReactionEnvironment(AECEnv):
                 if self.board[x_current, y_current, (current_index+1)%2] == 1:
                     self.board[x_current, y_current, (current_index+1)%2] = 0
                     self.board[x_current, y_current, (current_index)%2] = 1
-
                     if self.board[x_current, y_current, ((current_index+1)%2)*3 + 2] == 1:
                         self.cleaner(x_current,y_current)
                         self.board[x_current, y_current, (current_index%2)*3 + 3] = 1
-
                     elif self.board[x_current, y_current, ((current_index+1)%2)*3 + 3] == 1:
                         self.cleaner(x_current,y_current)
                         self.board[x_current, y_current, (current_index%2)*3 + 4] = 1
-
                     elif self.board[x_current, y_current, ((current_index+1)%2)*3 + 4] == 1:
                         self.cleaner(x_current,y_current)
                         self.board[x_current, y_current, (current_index)%2] = 0
                         self.burst(x_current, y_current)
-
         if self.counter3<5:
             self.counter3 += 1
             if y_coordinate>0:
@@ -301,11 +281,9 @@ class ChainReactionEnvironment(AECEnv):
                     if self.board[x_current, y_current, (current_index%2)*3 + 2] == 1:
                         self.cleaner(x_current,y_current)
                         self.board[x_current, y_current, (current_index%2)*3 + 3] = 1
-
                     elif self.board[x_current, y_current, (current_index%2)*3 + 3] == 1:
                         self.cleaner(x_current,y_current)
                         self.board[x_current, y_current, (current_index%2)*3 + 4] = 1
-
                     elif self.board[x_current, y_current, (current_index%2)*3 + 4] == 1:
                         self.cleaner(x_current,y_current)
                         self.board[x_current, y_current, (current_index)%2] = 0
@@ -314,15 +292,12 @@ class ChainReactionEnvironment(AECEnv):
                 if self.board[x_current, y_current, (current_index+1)%2] == 1:
                     self.board[x_current, y_current, (current_index+1)%2] = 0
                     self.board[x_current, y_current, (current_index)%2] = 1
-
                     if self.board[x_current, y_current, ((current_index+1)%2)*3 + 2] == 1:
                         self.cleaner(x_current,y_current)
                         self.board[x_current, y_current, (current_index%2)*3 + 3] = 1
-
                     elif self.board[x_current, y_current, ((current_index+1)%2)*3 + 3] == 1:
                         self.cleaner(x_current,y_current)
                         self.board[x_current, y_current, (current_index%2)*3 + 4] = 1
-
                     elif self.board[x_current, y_current, ((current_index+1)%2)*3 + 4] == 1:
                         self.cleaner(x_current,y_current)
                         self.board[x_current, y_current, (current_index)%2] = 0
@@ -342,11 +317,9 @@ class ChainReactionEnvironment(AECEnv):
                     if self.board[x_current, y_current, (current_index%2)*3 + 2] == 1:
                         self.cleaner(x_current,y_current)
                         self.board[x_current, y_current, (current_index%2)*3 + 3] = 1
-
                     elif self.board[x_current, y_current, (current_index%2)*3 + 3] == 1:
                         self.cleaner(x_current,y_current)
                         self.board[x_current, y_current, (current_index%2)*3 + 4] = 1
-
                     elif self.board[x_current, y_current, (current_index%2)*3 + 4] == 1:
                         self.cleaner(x_current,y_current)
                         self.board[x_current, y_current, (current_index)%2] = 0
@@ -355,15 +328,12 @@ class ChainReactionEnvironment(AECEnv):
                 if self.board[x_current, y_current, (current_index+1)%2] == 1:
                     self.board[x_current, y_current, (current_index+1)%2] = 0
                     self.board[x_current, y_current, (current_index)%2] = 1
-
                     if self.board[x_current, y_current, ((current_index+1)%2)*3 + 2] == 1:
                         self.cleaner(x_current,y_current)
                         self.board[x_current, y_current, (current_index%2)*3 + 3] = 1
-
                     elif self.board[x_current, y_current, ((current_index+1)%2)*3 + 3] == 1:
                         self.cleaner(x_current,y_current)
                         self.board[x_current, y_current, (current_index%2)*3 + 4] = 1
-
                     elif self.board[x_current, y_current, ((current_index+1)%2)*3 + 4] == 1:
                         self.cleaner(x_current,y_current)
                         self.board[x_current, y_current, (current_index)%2] = 0
@@ -373,33 +343,25 @@ class ChainReactionEnvironment(AECEnv):
     def cleaner(self,x,y):
             for R in range(6):
                 self.board[x, y, R+2] = 0
-        
 
     def render(self):
         if self.render_mode is None:
             gymnasium.logger.warn(
                 "You are calling render method without specifying any render mode."
             )
-        elif self.render_mode == "ansi":
-            return str(self.board)
-        elif self.render_mode in {"human", "rgb_array"}:
+        elif self.render_mode in {"human"}:
             return self._render_gui()
         else:
             raise ValueError(
                 f"{self.render_mode} is not a valid render mode. Available modes are: {self.metadata['render_modes']}"
             )
-
-
-
+        
     def _render_gui(self):
         if self.screen is None:
             pygame.init()
-
             if self.render_mode == "human":
                 pygame.display.set_caption("CHAIN REACTION")
                 self.screen = pygame.display.set_mode(self.BOARD_SIZE)
-            elif self.render_mode == "rgb_array":
-                self.screen = pygame.Surface(self.BOARD_SIZE)
 
         self.screen.blit(self.bg_image, (0, 0))
 
@@ -429,10 +391,6 @@ class ChainReactionEnvironment(AECEnv):
         if self.render_mode == "human":
             pygame.display.update()
             self.clock.tick(self.metadata["render_fps"])
-        elif self.render_mode == "rgb_array":
-            return np.transpose(
-                np.array(pygame.surfarray.pixels3d(self.screen)), axes=(1, 0, 2)
-            )
     
         windowRunning = True
         while windowRunning:

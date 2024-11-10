@@ -1,13 +1,9 @@
 from ChainReaction_environment.env.ChainReaction_environment import ChainReactionEnvironment
-import sys
-sys.setrecursionlimit(1500)
-print(sys.getrecursionlimit())
 env = ChainReactionEnvironment(render_mode='human')
 env.reset(seed=42)
 
 for agent in env.agent_iter():
     observation, reward, termination, truncation, info = env.last()
-
     if termination or truncation:
         action = None
     else:
