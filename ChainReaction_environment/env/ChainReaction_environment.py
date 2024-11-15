@@ -118,7 +118,7 @@ class ChainReactionEnvironment(AECEnv):
         self.truncations = {name: False for name in self.agents}
         self.infos = {name: {} for name in self.agents}
 
-        self.board_history = np.zeros(shape=(16, 16, 32), dtype=bool)
+        self.board_history = np.zeros(shape=(16, 16, 40), dtype=bool)
 
         if self.render_mode == "human":
             self.render()
