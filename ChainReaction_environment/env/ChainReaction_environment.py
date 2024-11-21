@@ -32,8 +32,8 @@ class ChainReactionEnvironment(AECEnv):
         self.infos = {name: {} for name in self.agents}
         self.truncations = {name: False for name in self.agents}
         self.terminations = {name: False for name in self.agents}
-        self.board = np.zeros((16, 16, 8), dtype=bool)
-        self.board_history = np.zeros((16, 16, 32), dtype=bool)# set board history
+        self.board = np.zeros((10, 10, 8), dtype=bool)
+        self.board_history = np.zeros((10, 10, 32), dtype=bool)# set board history
 
         assert render_mode is None or render_mode in self.metadata["render_modes"]
         self.render_mode = render_mode
@@ -43,7 +43,7 @@ class ChainReactionEnvironment(AECEnv):
         if self.render_mode in ["human", "rgb_array"]:
             self.BOARD_SIZE = (self.screen_width, self.screen_height)
             self.clock = pygame.time.Clock()
-            self.cell_size = (self.BOARD_SIZE[0] / 16, self.BOARD_SIZE[1] / 16)
+            self.cell_size = (self.BOARD_SIZE[0] / 10, self.BOARD_SIZE[1] / 10)
 
             bg_name = path.join(path.dirname(__file__), "./images/grid.jpg")
             self.bg_image = pygame.transform.scale(
@@ -70,10 +70,10 @@ class ChainReactionEnvironment(AECEnv):
             name: spaces.Dict(
                 {
                     "observation": spaces.Box(
-                        low=0, high=1, shape=(16, 16, 40), dtype=bool
+                        low=0, high=1, shape=(10, 10, 40), dtype=bool
                     ),
                     "action_mask": spaces.Box(
-                        low=0, high=1, shape=(16*16,), dtype=np.int8
+                        low=0, high=1, shape=(10*10,), dtype=np.int8
                     ),
                 }
             )
@@ -83,7 +83,7 @@ class ChainReactionEnvironment(AECEnv):
     
     def action_space(self, agent):
 
-        self.action_spaces = {name: spaces.Discrete(16 * 16) for name in self.agents}
+        self.action_spaces = {name: spaces.Discrete(10 * 10) for name in self.agents}
 
         return self.action_spaces[agent]
     
@@ -94,21 +94,18 @@ class ChainReactionEnvironment(AECEnv):
 
         legal_moves = np.where(observation[:,:,(current_index+1)%2].flatten()==0) #board positions with no opponent particle(s)
 
-        action_mask = np.zeros(16*16, "int8")
+        action_mask = np.zeros(10*10, "int8")
         for i in legal_moves:
             action_mask[i] = 1
 
         return {"observation": observation, "action_mask": action_mask}
     
-    def reset(self, seed=None,):
+    def reset(self, seed):
         self.agents = self.possible_agents[:]
 
-        self.board = np.zeros(shape=(16,16,8))
+        self.board = np.zeros(shape=(10,10,8))
         self.num_steps = 0
-        self.counter1 = 0
-        self.counter2 = 0
-        self.counter3 = 0
-        self.counter4 = 0
+        self.burst_list = {'done':[],'not_done':[]}
         self._agent_selector = agent_selector(self.agents)
         self.agent_selection = self._agent_selector.reset()
 
@@ -118,13 +115,13 @@ class ChainReactionEnvironment(AECEnv):
         self.truncations = {name: False for name in self.agents}
         self.infos = {name: {} for name in self.agents}
 
-        self.board_history = np.zeros(shape=(16, 16, 40), dtype=bool)
+        self.board_history = np.zeros(shape=(10, 10, 40), dtype=bool)
 
         if self.render_mode == "human":
             self.render()
 
     def step(self, action):
-        
+        self.burst_list = {'done':[],'not_done':[]}
         if (
             self.terminations[self.agent_selection]
             or self.truncations[self.agent_selection]
@@ -135,8 +132,8 @@ class ChainReactionEnvironment(AECEnv):
         current_index = self.agents.index(current_agent)
         game_over = False
         #convert action to coordinate on board (a//N, a%N)
-        x_coord = action // 16
-        y_coord = action % 16
+        x_coord = action // 10
+        y_coord = action % 10
 
         if self.board[x_coord, y_coord, (current_index+1)%2] == 1:          #check if opponent team has a particle in the position chosen by action 
             game_over = True
@@ -157,13 +154,20 @@ class ChainReactionEnvironment(AECEnv):
         elif self.board[x_coord, y_coord, (current_index%2)*3 + 4] == 1:
             self.cleaner(x_coord,y_coord)
             self.board[x_coord, y_coord, (current_index)%2] = 0
-            self.burst(x_coord, y_coord)
+            self.burst_list['not_done'].append((x_coord,y_coord))
             print(f"Explooossionnnn!! caused by {current_agent}")
+
+        while len(self.burst_list['not_done'])>0:
+            for tile in self.burst_list['not_done']:
+                self.burst_list['not_done'].remove(tile)
+                self.burst_list['done'].append(tile)
+                self.burst(tile[0],tile[1])
+
 
         self.board_history = np.dstack((self.board, self.board_history[:, :, :32]))       #update board history
 
         if self.num_steps>2:
-            if np.all(self.board[:,:,(current_index+1)%2] == np.zeros(shape=(16,16))):  #game over when opponent has no particles on board
+            if np.all(self.board[:,:,(current_index+1)%2] == np.zeros(shape=(10,10))):  #game over when opponent has no particles on board
                 game_over = True
                 print(f"{current_agent} made the winning play! Game Over!!")
 
@@ -177,11 +181,6 @@ class ChainReactionEnvironment(AECEnv):
             else:
                 self.rewards['P1'] = lose_reward
                 self.rewards['P2'] = win_reward 
-         
-        self.counter1 = 0
-        self.counter2 = 0
-        self.counter3 = 0
-        self.counter4 = 0
         
         self.agent_selection = self._agent_selector.next()
         self._accumulate_rewards()
@@ -193,147 +192,148 @@ class ChainReactionEnvironment(AECEnv):
     def burst(self, x_coordinate, y_coordinate):            #checks if neighbouring tile in board and executes reaction burst updates on the board
         current_agent = self.agent_selection
         current_index = self.agents.index(current_agent)
-        if self.counter1<5:
-            self.counter1 += 1
-            if x_coordinate>0:
-                x_current = x_coordinate-1
-                y_current = y_coordinate
-                if (self.board[x_current, y_current, (current_index)%2] == 0) & (self.board[x_current, y_current, (current_index+1)%2] == 0):          
-                    self.board[x_current, y_current, (current_index)%2] = 1
-                    self.cleaner(x_current,y_current)             
-                    self.board[x_current, y_current, (current_index%2)*3 + 2] = 1   
-                     
-                if self.board[x_current, y_current, (current_index)%2] == 1:
-                    if self.board[x_current, y_current, (current_index%2)*3 + 2] == 1:
-                        self.cleaner(x_current,y_current)
-                        self.board[x_current, y_current, (current_index%2)*3 + 3] = 1
-                    elif self.board[x_current, y_current, (current_index%2)*3 + 3] == 1:
-                        self.cleaner(x_current,y_current)
-                        self.board[x_current, y_current, (current_index%2)*3 + 4] = 1
-                    elif self.board[x_current, y_current, (current_index%2)*3 + 4] == 1:
-                        self.cleaner(x_current,y_current)
-                        self.board[x_current, y_current, (current_index)%2] = 0
-                        self.burst(x_current, y_current)
+        if x_coordinate>0:
+            x_current = x_coordinate-1
+            y_current = y_coordinate
+            if (self.board[x_current, y_current, (current_index)%2] == 0) & (self.board[x_current, y_current, (current_index+1)%2] == 0):          
+                self.board[x_current, y_current, (current_index)%2] = 1
+                self.cleaner(x_current,y_current)             
+                self.board[x_current, y_current, (current_index%2)*3 + 2] = 1   
+                    
+            if self.board[x_current, y_current, (current_index)%2] == 1:
+                if self.board[x_current, y_current, (current_index%2)*3 + 2] == 1:
+                    self.cleaner(x_current,y_current)
+                    self.board[x_current, y_current, (current_index%2)*3 + 3] = 1
+                elif self.board[x_current, y_current, (current_index%2)*3 + 3] == 1:
+                    self.cleaner(x_current,y_current)
+                    self.board[x_current, y_current, (current_index%2)*3 + 4] = 1
+                elif self.board[x_current, y_current, (current_index%2)*3 + 4] == 1:
+                    self.cleaner(x_current,y_current)
+                    self.board[x_current, y_current, (current_index)%2] = 0
+                    if (x_current,y_current) not in self.burst_list['done']:
+                        self.burst_list['not_done'].append((x_current,y_current))
 
-                if self.board[x_current, y_current, (current_index+1)%2] == 1:
-                    self.board[x_current, y_current, (current_index+1)%2] = 0
-                    self.board[x_current, y_current, (current_index)%2] = 1
-                    if self.board[x_current, y_current, ((current_index+1)%2)*3 + 2] == 1:
-                        self.cleaner(x_current,y_current)
-                        self.board[x_current, y_current, (current_index%2)*3 + 3] = 1
-                    elif self.board[x_current, y_current, ((current_index+1)%2)*3 + 3] == 1:
-                        self.cleaner(x_current,y_current)
-                        self.board[x_current, y_current, (current_index%2)*3 + 4] = 1
-                    elif self.board[x_current, y_current, ((current_index+1)%2)*3 + 4] == 1:
-                        self.cleaner(x_current,y_current)
-                        self.board[x_current, y_current, (current_index)%2] = 0
-                        self.burst(x_current, y_current)
-        if self.counter2<5:
-            self.counter2 += 1
-            if x_coordinate<15:
-                x_current = x_coordinate+1
-                y_current = y_coordinate
-                if (self.board[x_current, y_current, (current_index)%2] == 0) & (self.board[x_current, y_current, (current_index+1)%2] == 0):          
-                    self.board[x_current, y_current, (current_index)%2] = 1
-                    self.cleaner(x_current,y_current)             
-                    self.board[x_current, y_current, (current_index%2)*3 + 2] = 1  
+            if self.board[x_current, y_current, (current_index+1)%2] == 1:
+                self.board[x_current, y_current, (current_index+1)%2] = 0
+                self.board[x_current, y_current, (current_index)%2] = 1
+                if self.board[x_current, y_current, ((current_index+1)%2)*3 + 2] == 1:
+                    self.cleaner(x_current,y_current)
+                    self.board[x_current, y_current, (current_index%2)*3 + 3] = 1
+                elif self.board[x_current, y_current, ((current_index+1)%2)*3 + 3] == 1:
+                    self.cleaner(x_current,y_current)
+                    self.board[x_current, y_current, (current_index%2)*3 + 4] = 1
+                elif self.board[x_current, y_current, ((current_index+1)%2)*3 + 4] == 1:
+                    self.cleaner(x_current,y_current)
+                    self.board[x_current, y_current, (current_index)%2] = 0
+                    if (x_current,y_current) not in self.burst_list['done']:
+                            self.burst_list['not_done'].append((x_current,y_current))
+        if x_coordinate<9:
+            x_current = x_coordinate+1
+            y_current = y_coordinate
+            if (self.board[x_current, y_current, (current_index)%2] == 0) & (self.board[x_current, y_current, (current_index+1)%2] == 0):          
+                self.board[x_current, y_current, (current_index)%2] = 1
+                self.cleaner(x_current,y_current)             
+                self.board[x_current, y_current, (current_index%2)*3 + 2] = 1  
 
-                if self.board[x_current, y_current, (current_index)%2] == 1:
-                    if self.board[x_current, y_current, (current_index%2)*3 + 2] == 1:
-                        self.cleaner(x_current,y_current)
-                        self.board[x_current, y_current, (current_index%2)*3 + 3] = 1
-                    elif self.board[x_current, y_current, (current_index%2)*3 + 3] == 1:
-                        self.cleaner(x_current,y_current)
-                        self.board[x_current, y_current, (current_index%2)*3 + 4] = 1
-                    elif self.board[x_current, y_current, (current_index%2)*3 + 4] == 1:
-                        self.cleaner(x_current,y_current)
-                        self.board[x_current, y_current, (current_index)%2] = 0
-                        self.burst(x_current, y_current)
+            if self.board[x_current, y_current, (current_index)%2] == 1:
+                if self.board[x_current, y_current, (current_index%2)*3 + 2] == 1:
+                    self.cleaner(x_current,y_current)
+                    self.board[x_current, y_current, (current_index%2)*3 + 3] = 1
+                elif self.board[x_current, y_current, (current_index%2)*3 + 3] == 1:
+                    self.cleaner(x_current,y_current)
+                    self.board[x_current, y_current, (current_index%2)*3 + 4] = 1
+                elif self.board[x_current, y_current, (current_index%2)*3 + 4] == 1:
+                    self.cleaner(x_current,y_current)
+                    self.board[x_current, y_current, (current_index)%2] = 0
+                    if (x_current,y_current) not in self.burst_list['done']:
+                            self.burst_list['not_done'].append((x_current,y_current))
 
-                if self.board[x_current, y_current, (current_index+1)%2] == 1:
-                    self.board[x_current, y_current, (current_index+1)%2] = 0
-                    self.board[x_current, y_current, (current_index)%2] = 1
-                    if self.board[x_current, y_current, ((current_index+1)%2)*3 + 2] == 1:
-                        self.cleaner(x_current,y_current)
-                        self.board[x_current, y_current, (current_index%2)*3 + 3] = 1
-                    elif self.board[x_current, y_current, ((current_index+1)%2)*3 + 3] == 1:
-                        self.cleaner(x_current,y_current)
-                        self.board[x_current, y_current, (current_index%2)*3 + 4] = 1
-                    elif self.board[x_current, y_current, ((current_index+1)%2)*3 + 4] == 1:
-                        self.cleaner(x_current,y_current)
-                        self.board[x_current, y_current, (current_index)%2] = 0
-                        self.burst(x_current, y_current)
-        if self.counter3<5:
-            self.counter3 += 1
-            if y_coordinate>0:
-                x_current = x_coordinate
-                y_current = y_coordinate-1
-                if (self.board[x_current, y_current, (current_index)%2] == 0) & (self.board[x_current, y_current, (current_index+1)%2] == 0):          
-                    self.board[x_current, y_current, (current_index)%2] = 1
-                    self.cleaner(x_current,y_current)             
-                    self.board[x_current, y_current, (current_index%2)*3 + 2] = 1    
+            if self.board[x_current, y_current, (current_index+1)%2] == 1:
+                self.board[x_current, y_current, (current_index+1)%2] = 0
+                self.board[x_current, y_current, (current_index)%2] = 1
+                if self.board[x_current, y_current, ((current_index+1)%2)*3 + 2] == 1:
+                    self.cleaner(x_current,y_current)
+                    self.board[x_current, y_current, (current_index%2)*3 + 3] = 1
+                elif self.board[x_current, y_current, ((current_index+1)%2)*3 + 3] == 1:
+                    self.cleaner(x_current,y_current)
+                    self.board[x_current, y_current, (current_index%2)*3 + 4] = 1
+                elif self.board[x_current, y_current, ((current_index+1)%2)*3 + 4] == 1:
+                    self.cleaner(x_current,y_current)
+                    self.board[x_current, y_current, (current_index)%2] = 0
+                    if (x_current,y_current) not in self.burst_list['done']:
+                            self.burst_list['not_done'].append((x_current,y_current))
 
-                if self.board[x_current, y_current, (current_index)%2] == 1:
-                    if self.board[x_current, y_current, (current_index%2)*3 + 2] == 1:
-                        self.cleaner(x_current,y_current)
-                        self.board[x_current, y_current, (current_index%2)*3 + 3] = 1
-                    elif self.board[x_current, y_current, (current_index%2)*3 + 3] == 1:
-                        self.cleaner(x_current,y_current)
-                        self.board[x_current, y_current, (current_index%2)*3 + 4] = 1
-                    elif self.board[x_current, y_current, (current_index%2)*3 + 4] == 1:
-                        self.cleaner(x_current,y_current)
-                        self.board[x_current, y_current, (current_index)%2] = 0
-                        self.burst(x_current, y_current)
+        if y_coordinate>0:
+            x_current = x_coordinate
+            y_current = y_coordinate-1
+            if (self.board[x_current, y_current, (current_index)%2] == 0) & (self.board[x_current, y_current, (current_index+1)%2] == 0):          
+                self.board[x_current, y_current, (current_index)%2] = 1
+                self.cleaner(x_current,y_current)             
+                self.board[x_current, y_current, (current_index%2)*3 + 2] = 1    
 
-                if self.board[x_current, y_current, (current_index+1)%2] == 1:
-                    self.board[x_current, y_current, (current_index+1)%2] = 0
-                    self.board[x_current, y_current, (current_index)%2] = 1
-                    if self.board[x_current, y_current, ((current_index+1)%2)*3 + 2] == 1:
-                        self.cleaner(x_current,y_current)
-                        self.board[x_current, y_current, (current_index%2)*3 + 3] = 1
-                    elif self.board[x_current, y_current, ((current_index+1)%2)*3 + 3] == 1:
-                        self.cleaner(x_current,y_current)
-                        self.board[x_current, y_current, (current_index%2)*3 + 4] = 1
-                    elif self.board[x_current, y_current, ((current_index+1)%2)*3 + 4] == 1:
-                        self.cleaner(x_current,y_current)
-                        self.board[x_current, y_current, (current_index)%2] = 0
-                        self.burst(x_current, y_current)
+            if self.board[x_current, y_current, (current_index)%2] == 1:
+                if self.board[x_current, y_current, (current_index%2)*3 + 2] == 1:
+                    self.cleaner(x_current,y_current)
+                    self.board[x_current, y_current, (current_index%2)*3 + 3] = 1
+                elif self.board[x_current, y_current, (current_index%2)*3 + 3] == 1:
+                    self.cleaner(x_current,y_current)
+                    self.board[x_current, y_current, (current_index%2)*3 + 4] = 1
+                elif self.board[x_current, y_current, (current_index%2)*3 + 4] == 1:
+                    self.cleaner(x_current,y_current)
+                    self.board[x_current, y_current, (current_index)%2] = 0
+                    if (x_current,y_current) not in self.burst_list['done']:
+                            self.burst_list['not_done'].append((x_current,y_current))
 
-        if self.counter4<5:
-            self.counter4 += 1
-            if y_coordinate<15:
-                x_current = x_coordinate
-                y_current = y_coordinate+1
-                if (self.board[x_current, y_current, (current_index)%2] == 0) & (self.board[x_current, y_current, (current_index+1)%2] == 0):          
-                    self.board[x_current, y_current, (current_index)%2] = 1
-                    self.cleaner(x_current,y_current)             
-                    self.board[x_current, y_current, (current_index%2)*3 + 2] = 1    
+            if self.board[x_current, y_current, (current_index+1)%2] == 1:
+                self.board[x_current, y_current, (current_index+1)%2] = 0
+                self.board[x_current, y_current, (current_index)%2] = 1
+                if self.board[x_current, y_current, ((current_index+1)%2)*3 + 2] == 1:
+                    self.cleaner(x_current,y_current)
+                    self.board[x_current, y_current, (current_index%2)*3 + 3] = 1
+                elif self.board[x_current, y_current, ((current_index+1)%2)*3 + 3] == 1:
+                    self.cleaner(x_current,y_current)
+                    self.board[x_current, y_current, (current_index%2)*3 + 4] = 1
+                elif self.board[x_current, y_current, ((current_index+1)%2)*3 + 4] == 1:
+                    self.cleaner(x_current,y_current)
+                    self.board[x_current, y_current, (current_index)%2] = 0
+                    if (x_current,y_current) not in self.burst_list['done']:
+                            self.burst_list['not_done'].append((x_current,y_current))
 
-                if self.board[x_current, y_current, (current_index)%2] == 1:
-                    if self.board[x_current, y_current, (current_index%2)*3 + 2] == 1:
-                        self.cleaner(x_current,y_current)
-                        self.board[x_current, y_current, (current_index%2)*3 + 3] = 1
-                    elif self.board[x_current, y_current, (current_index%2)*3 + 3] == 1:
-                        self.cleaner(x_current,y_current)
-                        self.board[x_current, y_current, (current_index%2)*3 + 4] = 1
-                    elif self.board[x_current, y_current, (current_index%2)*3 + 4] == 1:
-                        self.cleaner(x_current,y_current)
-                        self.board[x_current, y_current, (current_index)%2] = 0
-                        self.burst(x_current, y_current)
+        if y_coordinate<9:
+            x_current = x_coordinate
+            y_current = y_coordinate+1
+            if (self.board[x_current, y_current, (current_index)%2] == 0) & (self.board[x_current, y_current, (current_index+1)%2] == 0):          
+                self.board[x_current, y_current, (current_index)%2] = 1
+                self.cleaner(x_current,y_current)             
+                self.board[x_current, y_current, (current_index%2)*3 + 2] = 1    
 
-                if self.board[x_current, y_current, (current_index+1)%2] == 1:
-                    self.board[x_current, y_current, (current_index+1)%2] = 0
-                    self.board[x_current, y_current, (current_index)%2] = 1
-                    if self.board[x_current, y_current, ((current_index+1)%2)*3 + 2] == 1:
-                        self.cleaner(x_current,y_current)
-                        self.board[x_current, y_current, (current_index%2)*3 + 3] = 1
-                    elif self.board[x_current, y_current, ((current_index+1)%2)*3 + 3] == 1:
-                        self.cleaner(x_current,y_current)
-                        self.board[x_current, y_current, (current_index%2)*3 + 4] = 1
-                    elif self.board[x_current, y_current, ((current_index+1)%2)*3 + 4] == 1:
-                        self.cleaner(x_current,y_current)
-                        self.board[x_current, y_current, (current_index)%2] = 0
-                        self.burst(x_current, y_current)
+            if self.board[x_current, y_current, (current_index)%2] == 1:
+                if self.board[x_current, y_current, (current_index%2)*3 + 2] == 1:
+                    self.cleaner(x_current,y_current)
+                    self.board[x_current, y_current, (current_index%2)*3 + 3] = 1
+                elif self.board[x_current, y_current, (current_index%2)*3 + 3] == 1:
+                    self.cleaner(x_current,y_current)
+                    self.board[x_current, y_current, (current_index%2)*3 + 4] = 1
+                elif self.board[x_current, y_current, (current_index%2)*3 + 4] == 1:
+                    self.cleaner(x_current,y_current)
+                    self.board[x_current, y_current, (current_index)%2] = 0
+                    if (x_current,y_current) not in self.burst_list['done']:
+                            self.burst_list['not_done'].append((x_current,y_current))
+
+            if self.board[x_current, y_current, (current_index+1)%2] == 1:
+                self.board[x_current, y_current, (current_index+1)%2] = 0
+                self.board[x_current, y_current, (current_index)%2] = 1
+                if self.board[x_current, y_current, ((current_index+1)%2)*3 + 2] == 1:
+                    self.cleaner(x_current,y_current)
+                    self.board[x_current, y_current, (current_index%2)*3 + 3] = 1
+                elif self.board[x_current, y_current, ((current_index+1)%2)*3 + 3] == 1:
+                    self.cleaner(x_current,y_current)
+                    self.board[x_current, y_current, (current_index%2)*3 + 4] = 1
+                elif self.board[x_current, y_current, ((current_index+1)%2)*3 + 4] == 1:
+                    self.cleaner(x_current,y_current)
+                    self.board[x_current, y_current, (current_index)%2] = 0
+                    if (x_current,y_current) not in self.burst_list['done']:
+                            self.burst_list['not_done'].append((x_current,y_current))
 
 
     def cleaner(self,x,y):
@@ -361,12 +361,12 @@ class ChainReactionEnvironment(AECEnv):
 
         self.screen.blit(self.bg_image, (0, 0))
 
-        for X in range(16*16):
+        for X in range(10*10):
 
             for Z in range(np.shape(self.board)[2]-2):
-                if self.board[X % 16, X // 16, Z+2] == 1:
-                    pos_x = ((X // 16) * self.cell_size[0])
-                    pos_y = ((X % 16) * self.cell_size[1])
+                if self.board[X % 10, X // 10, Z+2] == 1:
+                    pos_x = ((X // 10) * self.cell_size[0])
+                    pos_y = ((X % 10) * self.cell_size[1])
                     if Z==0:
                         piece = 'P1_1'
                     elif Z==1:
@@ -393,7 +393,7 @@ class ChainReactionEnvironment(AECEnv):
             for event in pygame.event.get():
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     x_, y_ = pygame.mouse.get_pos()
-                    action = (x_//50) + (y_//50)*(16)
+                    action = (x_//80) + (y_//80)*(10)
                     self.infos[self.agent_selection] = action
                     windowRunning = False
 
