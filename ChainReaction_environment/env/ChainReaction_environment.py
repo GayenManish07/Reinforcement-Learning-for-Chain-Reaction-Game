@@ -23,7 +23,7 @@ class ChainReactionEnvironment(AECEnv):
         super().__init__()
 
 
-        self.agents = ["p1_team_a","p2_team_b","p3_team_a","p4_team_b"]
+        self.agents = ["P1","P2"]
         self.possible_agents = self.agents[:]
         self._agent_selector = agent_selector(self.agents)
         self.agent_selection = None
@@ -56,12 +56,12 @@ class ChainReactionEnvironment(AECEnv):
                 )
 
             self.piece_images = {
-                "team_a_1": load_piece("team_a_1"),
-                "team_b_1": load_piece("team_b_1"),
-                "team_a_2": load_piece("team_a_2"),
-                "team_b_2": load_piece("team_b_2"),
-                "team_a_3": load_piece("team_a_3"),
-                "team_b_3": load_piece("team_b_3"),
+                "P1_1": load_piece("team_a_1"),
+                "P2_1": load_piece("team_b_1"),
+                "P1_2": load_piece("team_a_2"),
+                "P2_2": load_piece("team_b_2"),
+                "P1_3": load_piece("team_a_3"),
+                "P2_3": load_piece("team_b_3"),
             }
 
     def observation_space(self, agent):
@@ -171,16 +171,12 @@ class ChainReactionEnvironment(AECEnv):
             self.terminations = {name: True for name in self.agents}
             win_reward = 1
             lose_reward = -1
-            if current_agent == 'p1_team_a' or 'p3_team_a':
-                self.rewards['p1_team_a'] = win_reward
-                self.rewards['p3_team_a'] = win_reward
-                self.rewards['p2_team_b'] = lose_reward
-                self.rewards['p4_team_b'] = lose_reward
+            if current_agent == 'P1':
+                self.rewards['P1'] = win_reward
+                self.rewards['P2'] = lose_reward
             else:
-                self.rewards['p1_team_a'] = lose_reward
-                self.rewards['p3_team_a'] = lose_reward
-                self.rewards['p2_team_b'] = win_reward
-                self.rewards['p4_team_b'] = win_reward    
+                self.rewards['P1'] = lose_reward
+                self.rewards['P2'] = win_reward 
          
         self.counter1 = 0
         self.counter2 = 0
@@ -372,17 +368,17 @@ class ChainReactionEnvironment(AECEnv):
                     pos_x = ((X // 16) * self.cell_size[0])
                     pos_y = ((X % 16) * self.cell_size[1])
                     if Z==0:
-                        piece = 'team_a_1'
+                        piece = 'P1_1'
                     elif Z==1:
-                        piece = 'team_a_2'
+                        piece = 'P1_2'
                     elif Z==2:
-                        piece = 'team_a_3'
+                        piece = 'P1_3'
                     elif Z==3:
-                        piece = 'team_b_1'
+                        piece = 'P2_1'
                     elif Z==4:
-                        piece = 'team_b_2'
+                        piece = 'P2_2'
                     elif Z==5:
-                        piece = 'team_b_3'
+                        piece = 'P2_3'
                   
 
                     piece_img = self.piece_images[piece]
@@ -396,8 +392,8 @@ class ChainReactionEnvironment(AECEnv):
         while windowRunning:
             for event in pygame.event.get():
                 if event.type == pygame.MOUSEBUTTONDOWN:
-                    x, y = pygame.mouse.get_pos()
-                    action = (x//50) + (y//50)*(16)
+                    x_, y_ = pygame.mouse.get_pos()
+                    action = (x_//50) + (y_//50)*(16)
                     self.infos[self.agent_selection] = action
                     windowRunning = False
 
