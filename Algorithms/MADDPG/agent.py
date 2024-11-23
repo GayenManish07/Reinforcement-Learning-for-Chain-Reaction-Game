@@ -1,5 +1,5 @@
 import torch as T
-from networks import ActorNetwork, CriticNetwork
+from Algorithms.MADDPG.networks import ActorNetwork, CriticNetwork
 import numpy as np
 class Agent:
     def __init__(self,   agent_idx, chkpt_dir,
