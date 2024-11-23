@@ -4,17 +4,18 @@ from network import CriticNetwork, ActorNetwork
 from buffer import PPOMemory
 
 class Agent:
-    def __init__(self, agent_idx ,gamma=0.99, alpha=0.0003, gae_lambda=0.95,
+    def __init__(self ,gamma=0.99, alpha=0.0003, gae_lambda=0.95,
             policy_clip=0.2, batch_size=64, n_epochs=10):
         self.gamma = gamma
         self.policy_clip = policy_clip
         self.n_epochs = n_epochs
         self.gae_lambda = gae_lambda
-        self.agent_name = 'P%s' %agent_idx
-        self.actor1 = ActorNetwork(alpha,name=self.agent_name)
-        self.critic1 = CriticNetwork(alpha,name=self.agent_name)
-        self.actor2 = ActorNetwork(alpha,name=self.agent_name)
-        self.critic2 = CriticNetwork(alpha,name=self.agent_name)
+        self.agent_name1 = 'P1'
+        self.agent_name2 = 'P2'
+        self.actor1 = ActorNetwork(alpha,name=self.agent_name1)
+        self.critic1 = CriticNetwork(alpha,name=self.agent_name1)
+        self.actor2 = ActorNetwork(alpha,name=self.agent_name2)
+        self.critic2 = CriticNetwork(alpha,name=self.agent_name2)
         self.memory = PPOMemory(batch_size)
        
     def remember(self, state, action, probs, vals, reward, done):
@@ -41,9 +42,10 @@ class Agent:
             dist = self.actor1(state)
             value = self.critic1(state)
         else:
-            state = T.tensor([observation], dtype=T.float).to(self.actor2.device)
-            dist = self.actor1(state)
-            value = self.critic1(state)
+            state = T.tensor(observation, dtype=T.float).to(self.actor2.device)
+            state = state.unsqueeze(0)
+            dist = self.actor2(state)
+            value = self.critic2(state)
 
         action = dist.sample()
 
@@ -88,8 +90,8 @@ class Agent:
                     states = T.tensor(state_arr[batch], dtype=T.float).to(self.actor2.device)
                     old_probs = T.tensor(old_prob_arr[batch]).to(self.actor2.device)
                     actions = T.tensor(action_arr[batch]).to(self.actor2.device)
-                    dist = self.actor1(states)
-                    critic_value = self.critic1(states)
+                    dist = self.actor2(states)
+                    critic_value = self.critic2(states)
                 
                 critic_value = T.squeeze(critic_value)
 
@@ -117,8 +119,8 @@ class Agent:
                     self.actor1.optimizer.step()
                     self.critic1.optimizer.step()
                 else:
-                    self.actor1.optimizer.step()
-                    self.critic1.optimizer.step()
+                    self.actor2.optimizer.step()
+                    self.critic2.optimizer.step()
                     
         self.memory.clear_memory()               
 
