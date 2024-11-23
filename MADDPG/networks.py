@@ -62,8 +62,7 @@ class ActorNetwork(nn.Module):
         x=self.conv1(state)
         x=self.flatten(x)
         x = F.relu(self.fc1(x))      #changed here
-        pi = T.softmax(self.pi(x), dim=0)
-
+        pi = T.softmax(self.pi(x), dim=1)
         return pi
 
     def save_checkpoint(self):

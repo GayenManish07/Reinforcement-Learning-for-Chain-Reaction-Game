@@ -23,7 +23,8 @@ class Agent:
         self.update_network_parameters(tau=1)
 
     def choose_action(self, observation):
-        state = T.tensor([observation], dtype=T.float).to(self.actor.device)
+        state = T.tensor(observation, dtype=T.float).to(self.actor.device)
+        state = state.unsqueeze(0)
         actions = self.actor.forward(state)
         noise = T.rand(1).to(self.actor.device)
 

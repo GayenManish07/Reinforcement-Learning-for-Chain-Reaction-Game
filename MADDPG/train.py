@@ -36,8 +36,8 @@ if __name__ == '__main__':
                         n_actions, 2, batch_size=1024)
 
     PRINT_INTERVAL = 10
-    N_GAMES = 100
-    MAX_STEPS = 50
+    N_GAMES = 10
+    MAX_STEPS = 100
     total_steps = 0
     score_history = []
     evaluate = False
