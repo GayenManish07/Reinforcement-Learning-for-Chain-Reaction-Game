@@ -6,13 +6,13 @@ from utils import plot_learning_curve
 if __name__ == '__main__':
     env = ChainReactionEnvironment()
     N = 20
-    batch_size = 5
+    batch_size = 64
     n_epochs = 4
     alpha = 0.0003
     agent = Agent(batch_size=batch_size, 
                     alpha=alpha, n_epochs=n_epochs)
 
-    n_games = 1000
+    n_games = 10000
 
     figure_file1 = 'P:\MARL_project\Reinforcement-Learning-for-Chain-Reaction-Game\Algorithms\PPO\plots/agent1_ppo.png'
     figure_file2 = 'P:\MARL_project\Reinforcement-Learning-for-Chain-Reaction-Game\Algorithms\PPO\plots/agent2_ppo.png'
@@ -45,8 +45,7 @@ if __name__ == '__main__':
                 reward=env.rewards['P1']
             else:
                 reward=env.rewards['P2']
-            steps +=1
-            n_steps += 1
+
             score += reward
             agent.remember(observation, action, prob, val, reward, done)
             if n_steps % N == 0:
@@ -59,13 +58,14 @@ if __name__ == '__main__':
             done=any(env.terminations.values())
             if done:
                 print(f'Player {env.agent_selection} won!')
-        if steps%2==0:
-            score_history1.append(score)
-        else:
-            score_history2.append(score)
-        avg_score1 = np.mean(score_history1[-100:])
-        avg_score2 = np.mean(score_history2[-100:])
-
+            if steps%2==0:
+                score_history1.append(score)
+            else:
+                score_history2.append(score)
+            avg_score1 = np.mean(score_history1[-100:])
+            avg_score2 = np.mean(score_history2[-100:])
+            steps +=1
+            n_steps += 1
         if i%100 ==0:
             agent.save_models()
 

@@ -2,6 +2,8 @@ import numpy as np
 from maddpg import MADDPG
 from buffer import MultiAgentReplayBuffer
 from ChainReaction_environment.env.ChainReaction_environment import ChainReactionEnvironment
+from utils import plot_learning_curve
+
 env = ChainReactionEnvironment(render_mode=None)
 env.reset()
 
@@ -10,7 +12,8 @@ def obs_list_to_state_vector(observation):
     for obs in observation:
         state = np.concatenate([state, obs])
     return state
-
+figure_file1 = 'P:\MARL_project\Reinforcement-Learning-for-Chain-Reaction-Game\MADDPG\plots'
+figure_file2 = 'P:\MARL_project\Reinforcement-Learning-for-Chain-Reaction-Game\MADDPG\plots'
 if __name__ == '__main__':
     #scenario = 'simple'
     
@@ -35,13 +38,13 @@ if __name__ == '__main__':
     memory = MultiAgentReplayBuffer(100000, critic_dims, actor_dims, 
                         n_actions, 2, batch_size=1024)
 
-    PRINT_INTERVAL = 10
-    N_GAMES = 10
-    MAX_STEPS = 100
+    PRINT_INTERVAL = 100
+    N_GAMES = 1000
+    MAX_STEPS = 1000
     total_steps = 0
-    score_history = []
+    best_score = [0,0]
     evaluate = False
-    best_score = [0,0]#{'P1':0,'P2':0}
+    score_history = {'P1':[],'P2':[]}#{'P1':0,'P2':0}
 
     if evaluate:
         maddpg_agents.load_checkpoint()
@@ -83,17 +86,14 @@ if __name__ == '__main__':
 
             obs = obs_
 
-            score = list(x+y for x,y in zip(score,reward.values()))
-
+            score_history['P1'].append(env.rewards['P1'])
+            score_history['P2'].append(env.rewards['P2'])
             total_steps += 1
             episode_steps += 1
             
 
-
-        score_history.append(score)
-
-
-        avg_score=[sum(col) / len(col) for col in zip(*score_history)]
+        '''
+        avg_score=[sum(col) / len(col) for col in zip(score_history.values())]
         #avg_score = {'P1':np.mean(score_history[0][0][-1:]),'P2':np.mean(score_history[0][1][-1:])}
 
         if not evaluate:
@@ -103,3 +103,10 @@ if __name__ == '__main__':
         if i % PRINT_INTERVAL == 0 and i > 0:
 
             print(f"Episode {i}: Average Player Scores: {avg_score}")
+
+        '''     
+        maddpg_agents.save_checkpoint()       
+    x1 = [i+1 for i in range(len(score_history['P1']))]
+    x2 = [i+1 for i in range(len(score_history['P2']))]
+    plot_learning_curve(x1, score_history['P1'], figure_file1)
+    plot_learning_curve(x2, score_history['P2'], figure_file2)
