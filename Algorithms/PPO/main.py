@@ -52,6 +52,7 @@ if __name__ == '__main__':
                 agent.learn('P2')
                 learn_iters += 1
             observation = observation_
+            done=any(env.terminations.values())
         if steps%2==0:
             score_history1.append(score)
         else:

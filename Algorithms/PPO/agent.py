@@ -22,18 +22,22 @@ class Agent:
 
     def save_models(self):
         print('... saving models ...')
-        self.actor.save_checkpoint()
-        self.critic.save_checkpoint()
+        self.actor1.save_checkpoint()
+        self.critic1.save_checkpoint()
+        self.actor2.save_checkpoint()
+        self.critic2.save_checkpoint()
 
     def load_models(self):
         print('... loading models ...')
-        self.actor.load_checkpoint()
-        self.critic.load_checkpoint()
-
+        self.actor1.load_checkpoint()
+        self.critic1.load_checkpoint()
+        self.actor2.load_checkpoint()
+        self.critic2.load_checkpoint()
     def choose_action(self, observation,agent_idx):
 
         if agent_idx=='P1':
-            state = T.tensor([observation], dtype=T.float).to(self.actor1.device)
+            state = T.tensor(observation, dtype=T.float).to(self.actor1.device)
+            state = state.unsqueeze(0)
             dist = self.actor1(state)
             value = self.critic1(state)
         else:
