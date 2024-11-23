@@ -12,7 +12,7 @@ if __name__ == '__main__':
     agent = Agent(batch_size=batch_size, 
                     alpha=alpha, n_epochs=n_epochs)
 
-    n_games = 10
+    n_games = 1000
 
     figure_file1 = 'P:\MARL_project\Reinforcement-Learning-for-Chain-Reaction-Game\Algorithms\PPO\plots/agent1_ppo.png'
     figure_file2 = 'P:\MARL_project\Reinforcement-Learning-for-Chain-Reaction-Game\Algorithms\PPO\plots/agent2_ppo.png'
@@ -23,7 +23,7 @@ if __name__ == '__main__':
     learn_iters = 0
     avg_score = 0
     n_steps = 0
-    resume = False
+    resume = True
     if resume:
         agent.load_models()
     for i in range(n_games):
@@ -57,6 +57,8 @@ if __name__ == '__main__':
                 learn_iters += 1
             observation = observation_
             done=any(env.terminations.values())
+            if done:
+                print(f'Player {env.agent_selection} won!')
         if steps%2==0:
             score_history1.append(score)
         else:
