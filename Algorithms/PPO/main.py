@@ -11,10 +11,11 @@ if __name__ == '__main__':
     alpha = 0.0003
     agent = Agent(batch_size=batch_size, 
                     alpha=alpha, n_epochs=n_epochs)
-    n_games = 100
 
-    figure_file1 = 'plots/agent1_ppo.png'
-    figure_file2 = 'plots/agent2_ppo.png'
+    n_games = 10
+
+    figure_file1 = 'P:\MARL_project\Reinforcement-Learning-for-Chain-Reaction-Game\Algorithms\PPO\plots/agent1_ppo.png'
+    figure_file2 = 'P:\MARL_project\Reinforcement-Learning-for-Chain-Reaction-Game\Algorithms\PPO\plots/agent2_ppo.png'
     best_score1= 0
     best_score2= 0
     score_history1 = []
@@ -22,7 +23,9 @@ if __name__ == '__main__':
     learn_iters = 0
     avg_score = 0
     n_steps = 0
-
+    resume = False
+    if resume:
+        agent.load_models()
     for i in range(n_games):
         env.reset()
         observation = env.board
@@ -41,7 +44,8 @@ if __name__ == '__main__':
             if steps%2==0:
                 reward=env.rewards['P1']
             else:
-                reward=env.rewards['P1']
+                reward=env.rewards['P2']
+            steps +=1
             n_steps += 1
             score += reward
             agent.remember(observation, action, prob, val, reward, done)
@@ -55,19 +59,19 @@ if __name__ == '__main__':
             done=any(env.terminations.values())
         if steps%2==0:
             score_history1.append(score)
-            avg_score1 = np.mean(score_history1[-100:])
         else:
             score_history2.append(score)
-            avg_score2 = np.mean(score_history2[-100:])
+        avg_score1 = np.mean(score_history1[-100:])
+        avg_score2 = np.mean(score_history2[-100:])
 
-        
-        agent.save_models()
+        if i%100 ==0:
+            agent.save_models()
 
         print('episode', i, 'score %.1f' % score, 'avg score Player 1: %.1f' % avg_score1,'avg score Player 2: %.1f' % avg_score2,
-                'time_steps', n_steps, 'learning_steps', learn_iters)
+                'episode_steps',steps,'time_steps', n_steps, 'learning_steps', learn_iters)
     x1 = [i+1 for i in range(len(score_history1))]
     plot_learning_curve(x1, score_history1, figure_file1)
-    x2 = [i+1 for i in range(len(score_history1))]
+    x2 = [i+1 for i in range(len(score_history2))]
     plot_learning_curve(x2, score_history2, figure_file2)
 
 

@@ -9,7 +9,7 @@ from torch.distributions.categorical import Categorical
 
 class ActorNetwork(nn.Module):
     def __init__(self,  alpha,name,
-            fc1_dims=1024, fc2_dims=512, chkpt_dir='\checkpoints'):
+            fc1_dims=1024, fc2_dims=512, chkpt_dir='P:\MARL_project\Reinforcement-Learning-for-Chain-Reaction-Game\Algorithms\PPO\checkpoints'):
         super(ActorNetwork, self).__init__()
 
         self.checkpoint_file = os.path.join(chkpt_dir, name,'actor_torch_ppo')
@@ -49,7 +49,7 @@ class ActorNetwork(nn.Module):
 
 class CriticNetwork(nn.Module):
     def __init__(self,  alpha, name,fc1_dims=512, fc2_dims=256,
-            chkpt_dir='tmp/ppo'):
+            chkpt_dir='P:\MARL_project\Reinforcement-Learning-for-Chain-Reaction-Game\Algorithms\PPO\checkpoints'):
         super(CriticNetwork, self).__init__()
 
         self.checkpoint_file = os.path.join(chkpt_dir, name,'critic_torch_ppo')
