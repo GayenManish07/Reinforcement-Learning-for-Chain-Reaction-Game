@@ -211,7 +211,7 @@ class ChainReactionEnvironment(AECEnv):
                 self.cleaner(x_current,y_current)             
                 self.board[x_current, y_current, (current_index%2)*3 + 2] = 1   
                     
-            if self.board[x_current, y_current, (current_index)%2] == 1:
+            elif self.board[x_current, y_current, (current_index)%2] == 1:
                 if self.board[x_current, y_current, (current_index%2)*3 + 2] == 1:
                     self.cleaner(x_current,y_current)
                     self.board[x_current, y_current, (current_index%2)*3 + 3] = 1
@@ -224,7 +224,7 @@ class ChainReactionEnvironment(AECEnv):
                     if (x_current,y_current) not in self.burst_list['done']:
                         self.burst_list['not_done'].append((x_current,y_current))
 
-            if self.board[x_current, y_current, (current_index+1)%2] == 1:
+            elif self.board[x_current, y_current, (current_index+1)%2] == 1:
                 self.board[x_current, y_current, (current_index+1)%2] = 0
                 self.board[x_current, y_current, (current_index)%2] = 1
                 if self.board[x_current, y_current, ((current_index+1)%2)*3 + 2] == 1:
@@ -246,7 +246,7 @@ class ChainReactionEnvironment(AECEnv):
                 self.cleaner(x_current,y_current)             
                 self.board[x_current, y_current, (current_index%2)*3 + 2] = 1  
 
-            if self.board[x_current, y_current, (current_index)%2] == 1:
+            elif self.board[x_current, y_current, (current_index)%2] == 1:
                 if self.board[x_current, y_current, (current_index%2)*3 + 2] == 1:
                     self.cleaner(x_current,y_current)
                     self.board[x_current, y_current, (current_index%2)*3 + 3] = 1
@@ -259,7 +259,7 @@ class ChainReactionEnvironment(AECEnv):
                     if (x_current,y_current) not in self.burst_list['done']:
                             self.burst_list['not_done'].append((x_current,y_current))
 
-            if self.board[x_current, y_current, (current_index+1)%2] == 1:
+            elif self.board[x_current, y_current, (current_index+1)%2] == 1:
                 self.board[x_current, y_current, (current_index+1)%2] = 0
                 self.board[x_current, y_current, (current_index)%2] = 1
                 if self.board[x_current, y_current, ((current_index+1)%2)*3 + 2] == 1:
@@ -282,7 +282,7 @@ class ChainReactionEnvironment(AECEnv):
                 self.cleaner(x_current,y_current)             
                 self.board[x_current, y_current, (current_index%2)*3 + 2] = 1    
 
-            if self.board[x_current, y_current, (current_index)%2] == 1:
+            elif self.board[x_current, y_current, (current_index)%2] == 1:
                 if self.board[x_current, y_current, (current_index%2)*3 + 2] == 1:
                     self.cleaner(x_current,y_current)
                     self.board[x_current, y_current, (current_index%2)*3 + 3] = 1
@@ -295,7 +295,7 @@ class ChainReactionEnvironment(AECEnv):
                     if (x_current,y_current) not in self.burst_list['done']:
                             self.burst_list['not_done'].append((x_current,y_current))
 
-            if self.board[x_current, y_current, (current_index+1)%2] == 1:
+            elif self.board[x_current, y_current, (current_index+1)%2] == 1:
                 self.board[x_current, y_current, (current_index+1)%2] = 0
                 self.board[x_current, y_current, (current_index)%2] = 1
                 if self.board[x_current, y_current, ((current_index+1)%2)*3 + 2] == 1:
@@ -318,7 +318,7 @@ class ChainReactionEnvironment(AECEnv):
                 self.cleaner(x_current,y_current)             
                 self.board[x_current, y_current, (current_index%2)*3 + 2] = 1    
 
-            if self.board[x_current, y_current, (current_index)%2] == 1:
+            elif self.board[x_current, y_current, (current_index)%2] == 1:
                 if self.board[x_current, y_current, (current_index%2)*3 + 2] == 1:
                     self.cleaner(x_current,y_current)
                     self.board[x_current, y_current, (current_index%2)*3 + 3] = 1
@@ -331,7 +331,7 @@ class ChainReactionEnvironment(AECEnv):
                     if (x_current,y_current) not in self.burst_list['done']:
                             self.burst_list['not_done'].append((x_current,y_current))
 
-            if self.board[x_current, y_current, (current_index+1)%2] == 1:
+            elif self.board[x_current, y_current, (current_index+1)%2] == 1:
                 self.board[x_current, y_current, (current_index+1)%2] = 0
                 self.board[x_current, y_current, (current_index)%2] = 1
                 if self.board[x_current, y_current, ((current_index+1)%2)*3 + 2] == 1:
