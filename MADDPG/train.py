@@ -2,7 +2,7 @@ import numpy as np
 from maddpg import MADDPG
 from buffer import MultiAgentReplayBuffer
 from ChainReaction_environment.env.ChainReaction_environment import ChainReactionEnvironment
-from utils import plot_learning_curve
+from utils import plot_learning_curve, plot_learning_curve2
 
 env = ChainReactionEnvironment(render_mode=None)
 env.reset()
@@ -12,8 +12,8 @@ def obs_list_to_state_vector(observation):
     for obs in observation:
         state = np.concatenate([state, obs])
     return state
-figure_file1 = 'P:\MARL_project\Reinforcement-Learning-for-Chain-Reaction-Game\MADDPG\plots'
-figure_file2 = 'P:\MARL_project\Reinforcement-Learning-for-Chain-Reaction-Game\MADDPG\plots'
+figure_file1 = 'plots'
+figure_file2 = 'plots'
 if __name__ == '__main__':
     #scenario = 'simple'
     
@@ -38,13 +38,14 @@ if __name__ == '__main__':
     memory = MultiAgentReplayBuffer(100000, critic_dims, actor_dims, 
                         n_actions, 2, batch_size=1024)
 
-    PRINT_INTERVAL = 100
-    N_GAMES = 1000
-    MAX_STEPS = 1000
+    PRINT_INTERVAL = 10
+    N_GAMES = 100
+    MAX_STEPS = 100
     total_steps = 0
     best_score = [0,0]
     evaluate = False
     score_history = {'P1':[],'P2':[]}#{'P1':0,'P2':0}
+    ep_st={}
 
     if evaluate:
         maddpg_agents.load_checkpoint()
@@ -64,13 +65,27 @@ if __name__ == '__main__':
             #print(done)
             print(f'Action: {actions} by agent: {env.agent_selection}')
             if episode_steps%2==0:
-                env.step(actions[0])
+                if i%10 and i<100:
+                    act=np.random.randint(0,99)
+
+                    env.step(act)
+                else:
+                    env.step(actions[0])
             else:
-                env.step(actions[1])
+                if i%10 and i<100:
+                    act=np.random.randint(0,100)
+
+                    env.step(act)
+
+                else:    
+                    env.step(actions[1])
             obs_=env.board
             reward=env.rewards
 
             done=any(env.terminations.values())
+            if done:
+                ep_st[i]=episode_steps
+
 
             state = obs#obs_list_to_state_vector(obs)
             state_ = obs_#obs_list_to_state_vector(obs_)
@@ -108,5 +123,5 @@ if __name__ == '__main__':
         maddpg_agents.save_checkpoint()       
     x1 = [i+1 for i in range(len(score_history['P1']))]
     x2 = [i+1 for i in range(len(score_history['P2']))]
-    plot_learning_curve(x1, score_history['P1'], figure_file1)
-    plot_learning_curve(x2, score_history['P2'], figure_file2)
+    plot_learning_curve2(ep_st.keys(), ep_st.values(), figure_file1)
+#    plot_learning_curve2(x2, score_history['P2'], figure_file2)
