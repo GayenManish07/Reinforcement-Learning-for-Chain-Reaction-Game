@@ -38,9 +38,9 @@ if __name__ == '__main__':
     memory = MultiAgentReplayBuffer(100000, critic_dims, actor_dims, 
                         n_actions, 2, batch_size=1024)
 
-    PRINT_INTERVAL = 10
-    N_GAMES = 100
-    MAX_STEPS = 100
+    PRINT_INTERVAL = 100
+    N_GAMES = 1000
+    MAX_STEPS = 10000
     total_steps = 0
     best_score = [0,0]
     evaluate = False

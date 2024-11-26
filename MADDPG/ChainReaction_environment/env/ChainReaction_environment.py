@@ -136,25 +136,25 @@ class ChainReactionEnvironment(AECEnv):
         y_coord = action % 10
 
         if self.board[x_coord, y_coord, (current_index+1)%2] == 1:          #check if opponent team has a particle in the position chosen by action 
-            print(f"Illegal Action Taken: Opponent's Tile Selected , Action {action}, Move Wasted!")
+            pass#print(f"Illegal Action Taken: Opponent's Tile Selected , Action {action}, Move Wasted!")
         elif self.board[x_coord, y_coord, (current_index)%2] == 0:                          #check if friendly team has a particle in the position chosen by action
             self.board[x_coord, y_coord, (current_index)%2] = 1
-            self.cleaner(x_coord,y_coord)                                                                                        #add particle if no particle is present 
-            self.board[x_coord, y_coord, (current_index%2)*3 + 2] = 1                                                                                  #change board state to track particle updates(0->1,1->2,2->3 or 3->0 with burst)
-            print(f"{current_agent} Put 1 down on the board")
+            self.cleaner(x_coord,y_coord)                                                   #add particle if no particle is present 
+            self.board[x_coord, y_coord, (current_index%2)*3 + 2] = 1                        #change board state to track particle updates(0->1,1->2,2->3 or 3->0 with burst)
+            #print(f"{current_agent} Put 1 down on the board")
         elif self.board[x_coord, y_coord, (current_index%2)*3 + 2] == 1:
             self.cleaner(x_coord,y_coord)
             self.board[x_coord, y_coord, (current_index%2)*3 + 3] = 1
-            print(f"{current_agent} Stacked it to 2")
+            #print(f"{current_agent} Stacked it to 2")
         elif self.board[x_coord, y_coord, (current_index%2)*3 + 3] == 1:
             self.cleaner(x_coord,y_coord)
             self.board[x_coord, y_coord, (current_index%2)*3 + 4] = 1
-            print(f"{current_agent} Stacked it to 3")
+            #print(f"{current_agent} Stacked it to 3")
         elif self.board[x_coord, y_coord, (current_index%2)*3 + 4] == 1:
             self.cleaner(x_coord,y_coord)
             self.board[x_coord, y_coord, (current_index)%2] = 0
             self.burst_list['not_done'].append((x_coord,y_coord))
-            print(f"Explooossionnnn!! caused by {current_agent}")
+            #print(f"Explooossionnnn!! caused by {current_agent}")
 
         while len(self.burst_list['not_done'])!=0:
             for tile in self.burst_list['not_done']:
@@ -185,12 +185,12 @@ class ChainReactionEnvironment(AECEnv):
                 reward = np.sum(self.board_history[:,:,9]) - np.sum(self.board[:,:,1])
                 self.rewards['P1'] = reward
                 self.rewards['P2'] = -1
-                print(f'P1 took over {reward} opponent\'s tiles!')
+                #print(f'P1 took over {reward} opponent\'s tiles!')
             else:
                 reward = np.sum(self.board_history[:,:,8]) - np.sum(self.board[:,:,0])
                 self.rewards['P1'] = -1
                 self.rewards['P2'] = reward
-                print(f'P2 took over {reward} opponent\'s tiles!')
+                #print(f'P2 took over {reward} opponent\'s tiles!')
 
 
         self.agent_selection = self._agent_selector.next()
