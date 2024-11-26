@@ -7,8 +7,8 @@ env = ChainReactionEnvironment(render_mode='human')
 env.reset()
 
 model=ActorNetwork(0.0003,'P!')
-
-model.load_state_dict(T.load('Algorithms\\PPO\\checkpoints\\P1\\actor_torch_ppo', map_location=T.device('cpu')))
+device = T.device('cuda:0' if T.cuda.is_available() else 'cpu')
+model.load_state_dict(T.load('Algorithms\\PPO\\checkpoints\\P1\\actor_torch_ppo', map_location=device))
 model.eval()
 for agent in env.agent_iter():
     observation, reward, termination, truncation, info = env.last()
