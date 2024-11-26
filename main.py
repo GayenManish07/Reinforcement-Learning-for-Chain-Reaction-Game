@@ -21,14 +21,15 @@ for agent in env.agent_iter():
             env.step(action)
         else:
             observation=env.board
-            observation=T.tensor(observation,dtype=T.float).unsqueeze(dim=0)
+            observation=T.tensor(observation,dtype=T.float, device=device).unsqueeze(dim=0)
             action =model.forward(observation)
             action=np.argmax(action)
             print('___________________________')
             print(action)
             print('___________________________')
             env.step(action)
-        
+    if termination:
+        break
     print(f'Action: {action} by agent: {agent}')
 
 
