@@ -79,6 +79,6 @@ class CriticNetwork(nn.Module):
     def save_checkpoint(self):
         T.save(self.state_dict(), self.checkpoint_file)
 
-    #def load_checkpoint(self):
-    #    self.load_state_dict(T.load(self.checkpoint_file))
+    def load_checkpoint(self):
+        self.load_state_dict(T.load(self.checkpoint_file))
 

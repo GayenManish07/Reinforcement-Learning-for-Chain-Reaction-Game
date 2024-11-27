@@ -8,15 +8,16 @@ if __name__ == '__main__':
     N = 30
     batch_size = 32
     n_epochs = 4
-    alpha = 0.6
+    alpha = 0.05
     agent = Agent(batch_size=batch_size, 
                     alpha=alpha, n_epochs=n_epochs)
 
-    n_games = 1000
+    n_games = 3000
 
 #P:\MARL_project\Reinforcement-Learning-for-Chain-Reaction-Game\Algorithms\PPO\plots
-    figure_file1 = 'plots/agent1_ppo.png'
-    figure_file2 = 'plots/agent2_ppo.png'
+    figure_file1 = 'plots/agent_steps_ppo.png'
+    figure_file2 = 'plots/agent1_ppo.png'
+    figure_file3 = 'plots/agent2_ppo.png'
     best_score1= 0
     best_score2= 0
     score_history1 = []
@@ -25,7 +26,7 @@ if __name__ == '__main__':
     avg_score = 0
     n_steps = 0
     qu_step={}
-    resume = False
+    resume = True
     if resume:
         agent.load_models()
     for i in range(n_games):
@@ -78,8 +79,8 @@ if __name__ == '__main__':
         print('episode', i, 'score %.1f' % score, 'avg score Player 1: %.1f' % avg_score1,'avg score Player 2: %.1f' % avg_score2,
                 'episode_steps',steps,'time_steps', n_steps, 'learning_steps', learn_iters)
     x1 = [i+1 for i in range(len(score_history1))]
-    plot_learning_curve2(qu_step.keys(), qu_step.values(), figure_file1)
     x2 = [i+1 for i in range(len(score_history2))]
-    plot_learning_curve2(qu_step.keys(), qu_step.values(), figure_file2)
-
+    plot_learning_curve2(qu_step.keys(), qu_step.values(), figure_file1)
+    plot_learning_curve(x1, score_history1, figure_file2)
+    plot_learning_curve(x2, score_history2, figure_file3)
 
