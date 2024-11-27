@@ -12,7 +12,7 @@ if __name__ == '__main__':
     agent = Agent(batch_size=batch_size, 
                     alpha=alpha, n_epochs=n_epochs)
 
-    n_games = 3000
+    n_games = 6000
 
 #P:\MARL_project\Reinforcement-Learning-for-Chain-Reaction-Game\Algorithms\PPO\plots
     figure_file1 = 'plots/agent_steps_ppo.png'
