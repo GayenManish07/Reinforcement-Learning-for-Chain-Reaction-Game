@@ -2,8 +2,8 @@
 
 The **Chain Reaction** game is a popular strategic multiplayer game where players take turns placing orbs on a grid. The goal is to capture the opponent's cells by triggering chain reactions when the orbs exceed the grid cell's capacity. The game involves strategy, foresight, and adapting to opponents' moves.
 
-![Chain Reaction Gameplay](#)  
-*Placeholder for GIF: Chain Reaction Game in action.*
+![Chain Reaction Gameplay](chain_react.gif)  
+
 
 ---
 
@@ -15,9 +15,10 @@ PPO is a reinforcement learning (RL) algorithm that uses a single-agent policy o
 - **State Representation**: Encodes the game board as input for the agent, including cell ownership and orb count.
 - **Action Space**: The agent selects a grid cell for placing an orb.
 - **Reward System**:  
-  - +1 for capturing an opponent's orb.  
-  - 0 for adding an orb to a player's own cell.  
-  - -1 for losing a cell.  
+  - +100 for winning.
+  - -100 for losing. 
+  - -1 for selecting invalid cell.
+  Game concludes when when one player has no more remaining orbs on the board.
 - **Policy Optimization**: PPO optimizes the policy with a clipped surrogate objective to maintain stable updates.
 
 This approach works for solving single-player or competitive versions where one agent plays against predefined strategies or other PPO agents.
