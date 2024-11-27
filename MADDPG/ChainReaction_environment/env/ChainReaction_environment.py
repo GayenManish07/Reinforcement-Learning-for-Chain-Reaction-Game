@@ -172,8 +172,8 @@ class ChainReactionEnvironment(AECEnv):
 
         if game_over:
             self.terminations = {name: True for name in self.agents}
-            win_reward = 100
-            lose_reward = -100
+            win_reward = 1000
+            lose_reward = -1000
             if current_agent == 'P1':
                 self.rewards['P1'] = win_reward
                 self.rewards['P2'] = lose_reward
@@ -184,11 +184,11 @@ class ChainReactionEnvironment(AECEnv):
             if current_agent == 'P1':
                 reward = np.sum(self.board_history[:,:,9]) - np.sum(self.board[:,:,1])
                 self.rewards['P1'] = reward
-                self.rewards['P2'] = -1
+                self.rewards['P2'] = 0
                 #print(f'P1 took over {reward} opponent\'s tiles!')
             else:
                 reward = np.sum(self.board_history[:,:,8]) - np.sum(self.board[:,:,0])
-                self.rewards['P1'] = -1
+                self.rewards['P1'] = 0
                 self.rewards['P2'] = reward
                 #print(f'P2 took over {reward} opponent\'s tiles!')
 
