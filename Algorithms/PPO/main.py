@@ -37,11 +37,23 @@ if __name__ == '__main__':
         steps=0
         while not done:
             if steps%2==0:
-                action, prob, val = agent.choose_action(observation,'P1')
-            else:
-                action, prob, val = agent.choose_action(observation,'P2')
+                if i%10 and i<1000:
+                    act=np.random.randint(0,99)
 
-            env.step(action)
+                    env.step(act)
+                else:
+
+                    action, prob, val = agent.choose_action(observation,'P1')
+                    env.step(action)
+            else:
+                if i%10 and i<100:
+                    act=np.random.randint(0,99)
+
+                    env.step(act)
+                else:
+                    action, prob, val = agent.choose_action(observation,'P2')
+                    env.step(action)
+
 
             observation_=env.board
             if steps%2==0:
