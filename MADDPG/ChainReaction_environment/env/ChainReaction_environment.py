@@ -32,8 +32,8 @@ class ChainReactionEnvironment(AECEnv):
         self.infos = {name: {} for name in self.agents}
         self.truncations = {name: False for name in self.agents}
         self.terminations = {name: False for name in self.agents}
-        self.board = np.zeros((10, 10, 8), dtype=bool)
-        self.board_history = np.zeros((10, 10, 32), dtype=bool)# set board history
+        self.board = np.zeros((5, 5, 8), dtype=bool)
+        self.board_history = np.zeros((5, 5, 32), dtype=bool)# set board history
 
         assert render_mode is None or render_mode in self.metadata["render_modes"]
         self.render_mode = render_mode
@@ -43,7 +43,7 @@ class ChainReactionEnvironment(AECEnv):
         if self.render_mode in ["human", "rgb_array"]:
             self.BOARD_SIZE = (self.screen_width, self.screen_height)
             self.clock = pygame.time.Clock()
-            self.cell_size = (self.BOARD_SIZE[0] / 10, self.BOARD_SIZE[1] / 10)
+            self.cell_size = (self.BOARD_SIZE[0] / 5, self.BOARD_SIZE[1] / 5)
 
             bg_name = path.join(path.dirname(__file__), "./images/grid.jpg")
             self.bg_image = pygame.transform.scale(
@@ -70,10 +70,10 @@ class ChainReactionEnvironment(AECEnv):
             name: spaces.Dict(
                 {
                     "observation": spaces.Box(
-                        low=0, high=1, shape=(10, 10, 40), dtype=bool
+                        low=0, high=1, shape=(5, 5, 40), dtype=bool
                     ),
                     "action_mask": spaces.Box(
-                        low=0, high=1, shape=(10*10,), dtype=np.int8
+                        low=0, high=1, shape=(5*5,), dtype=np.int8
                     ),
                 }
             )
@@ -83,7 +83,7 @@ class ChainReactionEnvironment(AECEnv):
     
     def action_space(self, agent):
 
-        self.action_spaces = {name: spaces.Discrete(10 * 10) for name in self.agents}
+        self.action_spaces = {name: spaces.Discrete(5 * 5) for name in self.agents}
 
         return self.action_spaces[agent]
     
@@ -94,7 +94,7 @@ class ChainReactionEnvironment(AECEnv):
 
         legal_moves = np.where(observation[:,:,(current_index+1)%2].flatten()==0) #board positions with no opponent particle(s)
 
-        action_mask = np.zeros(10*10, "int8")
+        action_mask = np.zeros(5*5, "int8")
         for i in legal_moves:
             action_mask[i] = 1
 
@@ -103,7 +103,7 @@ class ChainReactionEnvironment(AECEnv):
     def reset(self,):
         self.agents = self.possible_agents[:]
 
-        self.board = np.zeros(shape=(10,10,8))
+        self.board = np.zeros(shape=(5,5,8))
         self.num_steps = 0
         self.burst_list = {'done':[],'not_done':[]}
         self._agent_selector = agent_selector(self.agents)
@@ -115,7 +115,7 @@ class ChainReactionEnvironment(AECEnv):
         self.truncations = {name: False for name in self.agents}
         self.infos = {name: {} for name in self.agents}
 
-        self.board_history = np.zeros(shape=(10, 10, 40), dtype=bool)
+        self.board_history = np.zeros(shape=(5, 5, 40), dtype=bool)
 
         if self.render_mode == "human":
             self.render()
@@ -132,8 +132,8 @@ class ChainReactionEnvironment(AECEnv):
         current_index = self.agents.index(current_agent)
         game_over = False
         #convert action to coordinate on board (a//N, a%N)
-        x_coord = action // 10
-        y_coord = action % 10
+        x_coord = action // 5
+        y_coord = action % 5
 
         if self.board[x_coord, y_coord, (current_index+1)%2] == 1:          #check if opponent team has a particle in the position chosen by action 
             pass#print(f"Illegal Action Taken: Opponent's Tile Selected , Action {action}, Move Wasted!")
@@ -166,7 +166,7 @@ class ChainReactionEnvironment(AECEnv):
         self.board_history = np.dstack((self.board, self.board_history[:, :, :32]))       #update board history
 
         if self.num_steps>2:
-            if np.all(self.board[:,:,(current_index+1)%2] == np.zeros(shape=(10,10))):  #game over when opponent has no particles on board
+            if np.all(self.board[:,:,(current_index+1)%2] == np.zeros(shape=(5,5))):  #game over when opponent has no particles on board
                 game_over = True
                 print(f"{current_agent} made the winning play! Game Over!!")
 
@@ -238,7 +238,7 @@ class ChainReactionEnvironment(AECEnv):
                     self.board[x_current, y_current, (current_index)%2] = 0
                     if (x_current,y_current) not in self.burst_list['done']:
                             self.burst_list['not_done'].append((x_current,y_current))
-        if x_coordinate<9:
+        if x_coordinate<4:
             x_current = x_coordinate+1
             y_current = y_coordinate
             if (self.board[x_current, y_current, (current_index)%2] == 0) & (self.board[x_current, y_current, (current_index+1)%2] == 0):          
@@ -310,7 +310,7 @@ class ChainReactionEnvironment(AECEnv):
                     if (x_current,y_current) not in self.burst_list['done']:
                             self.burst_list['not_done'].append((x_current,y_current))
 
-        if y_coordinate<9:
+        if y_coordinate<4:
             x_current = x_coordinate
             y_current = y_coordinate+1
             if (self.board[x_current, y_current, (current_index)%2] == 0) & (self.board[x_current, y_current, (current_index+1)%2] == 0):          
@@ -372,12 +372,12 @@ class ChainReactionEnvironment(AECEnv):
 
         self.screen.blit(self.bg_image, (0, 0))
 
-        for X in range(10*10):
+        for X in range(5*5):
 
             for Z in range(np.shape(self.board)[2]-2):
-                if self.board[X % 10, X // 10, Z+2] == 1:
-                    pos_x = ((X // 10) * self.cell_size[0])
-                    pos_y = ((X % 10) * self.cell_size[1])
+                if self.board[X % 5, X // 5, Z+2] == 1:
+                    pos_x = ((X // 5) * self.cell_size[0])
+                    pos_y = ((X % 5) * self.cell_size[1])
                     if Z==0:
                         piece = 'P1_1'
                     elif Z==1:
@@ -404,7 +404,7 @@ class ChainReactionEnvironment(AECEnv):
             for event in pygame.event.get():
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     x_, y_ = pygame.mouse.get_pos()
-                    action = (x_//80) + (y_//80)*(10)
+                    action = (x_//160) + (y_//160)*(5)
                     self.infos[self.agent_selection] = action
                     windowRunning = False
 

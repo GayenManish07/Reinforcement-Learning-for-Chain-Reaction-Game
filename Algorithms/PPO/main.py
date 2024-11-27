@@ -5,14 +5,14 @@ from utils import plot_learning_curve,plot_learning_curve2
 
 if __name__ == '__main__':
     env = ChainReactionEnvironment()
-    N = 30
-    batch_size = 32
+    N = 50
+    batch_size = 64
     n_epochs = 4
-    alpha = 0.05
+    alpha = 0.5
     agent = Agent(batch_size=batch_size, 
                     alpha=alpha, n_epochs=n_epochs)
 
-    n_games = 6000
+    n_games = 1000
 
 #P:\MARL_project\Reinforcement-Learning-for-Chain-Reaction-Game\Algorithms\PPO\plots
     figure_file1 = 'plots/agent_steps_ppo.png'
@@ -95,4 +95,3 @@ if __name__ == '__main__':
     plot_learning_curve2(qu_step.keys(), qu_step.values(), figure_file1)
     plot_learning_curve(x1, score_history1, figure_file2)
     plot_learning_curve(x2, score_history2, figure_file3)
-

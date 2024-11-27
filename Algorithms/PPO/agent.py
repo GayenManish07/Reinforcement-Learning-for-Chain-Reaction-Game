@@ -70,7 +70,7 @@ class Agent:
             else:
                     state_arr, action_arr, old_prob_arr, vals_arr,\
             reward_arr, dones_arr, batches = \
-                    self.memory1.generate_batches()
+                    self.memory2.generate_batches()
 
 
             values = vals_arr
@@ -133,8 +133,9 @@ class Agent:
                 else:
                     self.actor2.optimizer.step()
                     self.critic2.optimizer.step()
-                    
-        self.memory1.clear_memory()
-        self.memory2.clear_memory() 
+        if agent_idx=='P1':      
+            self.memory1.clear_memory()
+        else:
+            self.memory2.clear_memory() 
 
 
