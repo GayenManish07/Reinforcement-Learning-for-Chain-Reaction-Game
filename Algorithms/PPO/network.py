@@ -9,13 +9,13 @@ from torch.distributions.categorical import Categorical
 #P:\MARL_project\Reinforcement-Learning-for-Chain-Reaction-Game\Algorithms\PPO\
 class ActorNetwork(nn.Module):
     def __init__(self,  alpha,name,
-            fc1_dims=1024, fc2_dims=512, chkpt_dir='checkpoints'):
+            fc1_dims=64, fc2_dims=64, chkpt_dir='checkpoints'):
         super(ActorNetwork, self).__init__()
 
         self.checkpoint_file = os.path.join(chkpt_dir, name,'actor_torch_ppo')
         self.conv1=nn.Conv2d(8,4,3,stride=1,padding=1)
     
-        self.fc1 = nn.Linear(400, fc1_dims)
+        self.fc1 = nn.Linear(36, fc1_dims)
         self.fc2 = nn.Linear(fc1_dims, fc2_dims)
         self.pi = nn.Linear(fc2_dims, 100)
         self.flatten=nn.Flatten()
@@ -48,7 +48,7 @@ class ActorNetwork(nn.Module):
         self.load_state_dict(T.load(self.checkpoint_file))
 #P:\MARL_project\Reinforcement-Learning-for-Chain-Reaction-Game\Algorithms\PPO\
 class CriticNetwork(nn.Module):
-    def __init__(self,  alpha, name,fc1_dims=512, fc2_dims=256,
+    def __init__(self,  alpha, name,fc1_dims=64, fc2_dims=64,
             chkpt_dir='checkpoints'):
         super(CriticNetwork, self).__init__()
 

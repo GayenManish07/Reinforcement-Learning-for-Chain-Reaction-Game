@@ -31,7 +31,7 @@ if __name__ == '__main__':
     # action space is a list of arrays, assume each agent has same action space
     n_actions = 100#env.action_space[0].n
     maddpg_agents = MADDPG( env, chkpt_dir='checkpoints/',
-                           fc1=1024, fc2=1024,  
+                           fc1=64, fc2=64,  
                            alpha=0.01, beta=0.01
                            )
 

@@ -12,10 +12,10 @@ class CriticNetwork(nn.Module):
 
         self.chkpt_file = os.path.join(chkpt_dir, name)
         #do make sure that action is also channel to the convolution layer
-        self.conv1=nn.Conv2d(8,4,3,stride=1,padding=1)
-        self.fc1 = nn.Linear(400, fc1_dims)
-        self.fc2 = nn.Linear(fc1_dims, 256)
-        self.q = nn.Linear(256, 1)
+        self.conv1=nn.Conv2d(8,4,3,stride=1,padding='valid')
+        self.fc1 = nn.Linear(36, fc1_dims)
+        self.fc2 = nn.Linear(fc1_dims, 64)
+        self.q = nn.Linear(64, 1)
         self.flatten=nn.Flatten()
 
         self.optimizer = optim.Adam(self.parameters(), lr=beta)
@@ -48,7 +48,7 @@ class ActorNetwork(nn.Module):
         self.chkpt_file = os.path.join(chkpt_dir, name)
         self.conv1=nn.Conv2d(8,4,3,stride=1,padding=1)
     
-        self.fc1 = nn.Linear(400, fc2_dims)
+        self.fc1 = nn.Linear(36, fc2_dims)
         self.pi = nn.Linear(fc2_dims, 100)
         self.flatten=nn.Flatten()
 

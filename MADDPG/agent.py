@@ -3,8 +3,8 @@ from networks import ActorNetwork, CriticNetwork
 import numpy as np
 class Agent:
     def __init__(self,   agent_idx, chkpt_dir,
-                    alpha=0.01, beta=0.01, fc1=1024, 
-                    fc2=1024, gamma=0.95, tau=0.01):
+                    alpha=0.01, beta=0.01, fc1=64, 
+                    fc2=64, gamma=0.95, tau=0.01):
         self.gamma = gamma
         self.tau = tau
         

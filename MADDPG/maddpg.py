@@ -6,8 +6,8 @@ import numpy as np
 
 class MADDPG:
     def __init__(self, env,chkpt_dir , 
-                   alpha=0.01, beta=0.01, fc1=1024, 
-                 fc2=1024, gamma=0.99, tau=0.01):
+                   alpha=0.01, beta=0.01, fc1=64, 
+                 fc2=64, gamma=0.99, tau=0.01):
         self.agents = []
         self.env = env
 
