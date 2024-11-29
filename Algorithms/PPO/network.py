@@ -13,11 +13,11 @@ class ActorNetwork(nn.Module):
         super(ActorNetwork, self).__init__()
 
         self.checkpoint_file = os.path.join(chkpt_dir, name,'actor_torch_ppo')
-        self.conv1=nn.Conv2d(8,4,3,stride=1,padding=1)
+        self.conv1=nn.Conv2d(8,4,3,stride=1,padding='valid')
     
         self.fc1 = nn.Linear(36, fc1_dims)
         self.fc2 = nn.Linear(fc1_dims, fc2_dims)
-        self.pi = nn.Linear(fc2_dims, 100)
+        self.pi = nn.Linear(fc2_dims, 25)
         self.flatten=nn.Flatten()
         self.relu=nn.ReLU()
         self.soft=nn.Softmax(dim=-1)
@@ -53,8 +53,8 @@ class CriticNetwork(nn.Module):
         super(CriticNetwork, self).__init__()
 
         self.checkpoint_file = os.path.join(chkpt_dir, name,'critic_torch_ppo')
-        self.conv1=nn.Conv2d(8,4,3,stride=1,padding=1)
-        self.fc1 = nn.Linear(400, fc1_dims)
+        self.conv1=nn.Conv2d(8,4,3,stride=1,padding='valid')
+        self.fc1 = nn.Linear(36, fc1_dims)
         self.relu=nn.ReLU()
         self.fc2 = nn.Linear(fc1_dims,fc2_dims)
         self.q = nn.Linear(fc2_dims, 1)
