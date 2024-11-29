@@ -39,11 +39,11 @@ if __name__ == '__main__':
                         n_actions, 2, batch_size=1024)
 
     PRINT_INTERVAL = 100
-    N_GAMES = 1000
+    N_GAMES = 10000
     MAX_STEPS = 10000
     total_steps = 0
     best_score = [0,0]
-    evaluate = False
+    evaluate = True
     score_history = {'P1':[],'P2':[]}#{'P1':0,'P2':0}
     ep_st={}
 
@@ -65,14 +65,14 @@ if __name__ == '__main__':
             #print(done)
             #print(f'Action: {actions} by agent: {env.agent_selection}')
             if episode_steps%2==0:
-                if i%10 and i<100:
+                if i%10 and i<1000:
                     act=np.random.randint(0,25)
 
                     env.step(act)
                 else:
                     env.step(actions[0])
             else:
-                if i%10 and i<100:
+                if i%10 and i<1000:
                     act=np.random.randint(0,25)
 
                     env.step(act)

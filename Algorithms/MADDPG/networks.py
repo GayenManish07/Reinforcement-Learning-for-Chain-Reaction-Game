@@ -7,7 +7,7 @@ import torch.optim as optim
 
 class CriticNetwork(nn.Module):
     def __init__(self, beta, fc1_dims, fc2_dims, 
-                    name, chkpt_dir):
+                    name=None, chkpt_dir=None):
         super(CriticNetwork, self).__init__()
 
         self.chkpt_file = os.path.join(chkpt_dir, name)
@@ -41,15 +41,15 @@ class CriticNetwork(nn.Module):
 
 
 class ActorNetwork(nn.Module):
-    def __init__(self, alpha, fc2_dims, 
-                  name, chkpt_dir):
+    def __init__(self, alpha, fc2_dims=64, 
+                  name='a', chkpt_dir='a'):
         super(ActorNetwork, self).__init__()
 
         self.chkpt_file = os.path.join(chkpt_dir, name)
         self.conv1=nn.Conv2d(8,4,3,stride=1,padding='valid')
     
-        self.fc1 = nn.Linear(36, fc2_dims)
-        self.pi = nn.Linear(fc2_dims, 25)
+        self.fc1 = nn.Linear(36, 64)
+        self.pi = nn.Linear(64, 25)
         self.flatten=nn.Flatten()
 
         self.optimizer = optim.Adam(self.parameters(), lr=alpha)
