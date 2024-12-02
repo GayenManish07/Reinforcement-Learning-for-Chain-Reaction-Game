@@ -15,7 +15,7 @@ if var==0:
 #    model=ActorNetwork(0.01,1024,'P!','chkpt')
     model=ActorNetwork(0.0003,'P!')# PPO
     #MADDPG\\checkpoints\\P0_actor
-    model.load_state_dict(T.load('MADDPG\\checkpoints\\P0_actor', map_location=device))
+    model.load_state_dict(T.load('MADDPG\\checkpoints\\P1_actor', map_location=device))
     model.eval()
     for agent in env.agent_iter():
         observation, reward, termination, truncation, info = env.last()
