@@ -17,7 +17,7 @@ PPO is a reinforcement learning (RL) algorithm that uses a single-agent policy o
 - **Reward System**:  
   - +100 for winning.
   - -100 for losing. 
-  - + (number of tiles taken away from the opponent)
+  -  +(number of tiles taken away from the opponent)
   Game concludes when when one player has no more remaining orbs on the board.
 - **Policy Optimization**: PPO optimizes the policy with a clipped surrogate objective to maintain stable updates.
 
