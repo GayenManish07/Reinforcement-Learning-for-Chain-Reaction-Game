@@ -1,17 +1,18 @@
 from ChainReaction_environment.env.environment import ChainReactionEnvironment
 import torch as T
 import numpy as np
-#from PPO.network import ActorNetwork
-from MADDPG.networks import ActorNetwork
+
 
 
 
 device = T.device('cuda:0' if T.cuda.is_available() else 'cpu')
-var=0
+
+# change this variable here to try different algorithms -> 0:MADDPG , 1:PPO
+var=0 
 env = ChainReactionEnvironment(render_mode='human')
 env.reset()   
 if var==0:    
-
+    from MADDPG.networks import ActorNetwork
 #    model=ActorNetwork(0.01,1024,'P!','chkpt')
     model=ActorNetwork(0.0003,'P!')# PPO
     #MADDPG\\checkpoints\\P0_actor
@@ -44,7 +45,7 @@ if var==0:
 
 else:
 
-
+    from PPO.network import ActorNetwork
     model=ActorNetwork(0.03,'P!')# PPO
 
     model.load_state_dict(T.load('PPO\\checkpoints\\P2\\actor_torch_ppo', map_location=device))
