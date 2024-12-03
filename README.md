@@ -41,16 +41,33 @@ MADDPG enables dynamic and adaptive gameplay, where agents learn counterstrategi
 By leveraging PPO and MADDPG, the Chain Reaction game transitions into a robust RL problem, offering insights into multi-agent learning and strategic planning.
 
 
-## Run the code
+## For game demo 
+
+To play the game run the given command. 
+```
+python Algorithms/game_demo.py
+```
+In the game board select the square you want to place your piece in. 2 Players can places pieces alternatingly. 
+
+
+## For training agent
 
 ### For MADDPG 
 
 ```
-python MADDPG/train.py
+python Algorithms/MADDPG/train.py
 ```
 
 ### For PPO
 
 ```
-python Algorithms/PPO/main.py
+python Algorithms/PPO/train.py
 ```
+
+## For testing against trained agent 
+
+Against MADDPG:
+```
+python Algorithms/main.py
+```
+
