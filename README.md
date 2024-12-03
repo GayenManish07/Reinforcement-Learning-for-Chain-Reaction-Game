@@ -17,7 +17,7 @@ PPO is a reinforcement learning (RL) algorithm that uses a single-agent policy o
 - **Reward System**:  
   - +100 for winning.
   - -100 for losing. 
-  - -1 for selecting invalid cell.
+  - + (number of tiles taken away from the opponent)
   Game concludes when when one player has no more remaining orbs on the board.
 - **Policy Optimization**: PPO optimizes the policy with a clipped surrogate objective to maintain stable updates.
 
@@ -65,7 +65,8 @@ python Algorithms/PPO/train.py
 
 ## For testing against trained agent 
 
-Against MADDPG:
+Load the weights from 'Algorithms/MADDPG/checkpoints' or 'Algorithms/PPO/checkpoints' in 'Algorithms/main.py' then run the following:
+
 ```
 python Algorithms/main.py
 ```
